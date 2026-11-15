@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+package-lock.json
+next-env.d.ts
+.claude/memory
+.claude/sessions
+.claude/settings.local.json
+evals/reports
