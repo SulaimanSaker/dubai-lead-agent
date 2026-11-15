@@ -3,13 +3,17 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
-/** On Windows, Git Bash style paths (/c/Users/...) → C:/Users/... so Node can resolve them. */
+/**
+ * Windows path clean-up:
+ * - Git Bash style (/c/Users/...) → C:/Users/... so Node can resolve it.
+ * - Drive letter always UPPERCASE. Claude Code may pass "c:\...". Vitest then loads itself twice under two
+ *   spellings of the same path and fails with "Vitest failed to find the runner".
+ */
 function toNativePath(p) {
-  if (process.platform === "win32") {
-    const m = /^\/([a-zA-Z])(\/.*)?$/.exec(p);
-    if (m) return `${m[1].toUpperCase()}:${m[2] ?? "/"}`;
-  }
-  return p;
+  if (process.platform !== "win32") return p;
+  const gitBash = /^\/([a-zA-Z])(\/.*)?$/.exec(p);
+  if (gitBash) return `${gitBash[1].toUpperCase()}:${gitBash[2] ?? "/"}`;
+  return p.replace(/^([a-z]):/, (_, drive) => `${drive.toUpperCase()}:`);
 }
 
 export const projectDir = path.resolve(

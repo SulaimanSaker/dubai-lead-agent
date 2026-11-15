@@ -50,10 +50,12 @@ try {
 if (lastChange <= lastPass) process.exit(0); // nothing changed since the last green check
 
 const startedAt = Date.now();
-const result = spawnSync("npm", ["run", "check"], {
+// One command string through the shell (npm is npm.cmd on Windows). No separate args array:
+// Node warns that args + shell are concatenated without escaping (DEP0190).
+const result = spawnSync("npm run check", {
   cwd: projectDir,
   encoding: "utf8",
-  shell: process.platform === "win32", // npm is npm.cmd on Windows
+  shell: true,
 });
 
 if (result.status === 0) {
