@@ -1,0 +1,5 @@
+# Keep LF line endings in the repo and working copy on every OS.
+# Prettier expects LF; without this, Git on Windows checks files out as CRLF and `npm run check` fails.
+* text=auto eol=lf
+*.ico binary
+*.png binary
