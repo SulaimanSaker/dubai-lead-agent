@@ -52,8 +52,34 @@ See [ADR 0002](decisions/0002-model-layer.md).
 
 ## Data
 
-SQLite + Drizzle (see [ADR 0001](decisions/0001-stack.md)). Seeded with about 30 fictional listings
-(Dubai Marina, JVC, Downtown, Business Bay, …; AED prices; ready or off-plan) and an agent calendar.
+SQLite + Drizzle with the libSQL client (see [ADR 0001](decisions/0001-stack.md), [ADR 0003](decisions/0003-libsql-driver.md)).
+
+- Tables: `listings` (30 fixed, fictional: 8 areas, rent and sale, ready and off-plan), `leads`, `viewings`.
+- Schema changes: edit `src/db/schema.ts` → `npm run db:generate` → commit the migration in `src/db/migrations/`.
+- Local data: `npm run db:seed` (migrates and upserts the listings into `local.db`).
+- Tests: a fresh in-memory database per test (`src/db/test-db.ts`).
+- **Double booking** is blocked twice: an application check (friendly message) and a partial unique index on
+  `viewings(starts_at) WHERE status = 'booked'` (the real guarantee under concurrency).
+- **Times** are stored as UTC ISO strings and shown in Dubai time (UTC+4, no daylight saving).
+
+## Tools
+
+Defined with `defineTool` (`src/tools/types.ts`): a Zod input schema, a description that says **when** to use the
+tool, and `run(input, ctx)`. `execute()` validates the model's raw input first (and treats `null`/`""` fields as
+"not provided"). Expected problems — bad input, not found, slot taken — come back as `{ ok: false, error, message }`
+for the model to read, never as exceptions. `ctx` = `{ db, leadId, now }`; time is injected, never read from the clock.
+
+| Tool                  | Purpose                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| `search_listings`     | Filter listings; max 5, cheapest first; explains what to relax       |
+| `get_listing`         | Full details of one listing                                          |
+| `update_lead`         | Save what the buyer said; returns missing fields; marks `qualified`  |
+| `get_available_slots` | Free 1-hour slots (Mon–Sat 10:00–18:00 Dubai, 1 h notice, ≤ 60 days) |
+| `book_viewing`        | Book a free slot; viewing + lead status saved atomically             |
+| `handoff_to_human`    | Pass the buyer to a person with a reason and summary                 |
+
+The registry `src/tools/index.ts` exports `TOOLS`; a contract test checks names, descriptions and that every input
+field has a description (the model only sees names and descriptions).
 
 ## Observability and evals
 

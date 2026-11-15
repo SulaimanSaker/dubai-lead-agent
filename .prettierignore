@@ -9,3 +9,4 @@ next-env.d.ts
 .claude/sessions
 .claude/settings.local.json
 evals/reports
+src/db/migrations

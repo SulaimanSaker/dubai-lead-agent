@@ -7,3 +7,4 @@ New ADRs: use the `write-adr` skill. Never edit an accepted ADR's decision — w
 | ---- | ------------------------------------------------------------- | -------- |
 | 0001 | [Stack](0001-stack.md)                                        | accepted |
 | 0002 | [Model choice and swappable model layer](0002-model-layer.md) | accepted |
+| 0003 | [libSQL client as the SQLite driver](0003-libsql-driver.md)   | accepted |

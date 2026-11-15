@@ -43,6 +43,9 @@ yarn-error.log*
 # eval reports (generated)
 /evals/reports/
 
+# local database (recreate with `npm run db:seed`)
+/local.db*
+
 # vercel
 .vercel
 
