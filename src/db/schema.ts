@@ -75,6 +75,29 @@ export const viewings = sqliteTable(
   ],
 );
 
+export const MESSAGE_ROLES = ["user", "assistant", "tool"] as const;
+
+/**
+ * The conversation, one row per message, in order of `id`. `content` is the provider-neutral message
+ * (see src/agent/llm/types.ts), validated with Zod when read back. `meta` holds per-turn facts for the agent
+ * view and tracing (provider, model, prompt version, tokens, latency).
+ */
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    leadId: text("lead_id")
+      .notNull()
+      .references(() => leads.id),
+    role: text("role", { enum: MESSAGE_ROLES }).notNull(),
+    content: text("content", { mode: "json" }).$type<unknown>().notNull(),
+    meta: text("meta", { mode: "json" }).$type<Record<string, unknown>>(),
+    /** ISO 8601, UTC */
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [index("messages_lead_idx").on(t.leadId, t.id)],
+);
+
 export type Listing = typeof listings.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
 export type Viewing = typeof viewings.$inferSelect;

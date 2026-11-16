@@ -114,6 +114,13 @@ describe("parseLocalResponse", () => {
     ]);
   });
 
+  it("treats finish_reason 'tool_calls' with no calls as a normal end", () => {
+    const result = parseLocalResponse(
+      completion({ content: "Sure!", tool_calls: [] }, "tool_calls"),
+    );
+    expect(result).toMatchObject({ stop: "end", text: "Sure!", toolCalls: [] });
+  });
+
   it("treats empty arguments as {} and reads usage", () => {
     const result = parseLocalResponse(
       completion(

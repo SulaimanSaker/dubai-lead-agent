@@ -185,3 +185,43 @@ also cover `scripts/`.
 
 Not applied (noted for later): on local replay, a bad-JSON call is re-sent as `{}` (the error message the model
 gets already contains its raw text); checking that prompt caching really hits waits for real Claude recordings.
+
+### Step 2b: agent loop, prompt v1, guards (done, 2026-11-16)
+
+- `npm run check` green: **192 tests** (62 new since 2a: loop, guards, chat, leads, adapter edge cases).
+- Built: ADR 0004 (agent → db), `messages` table + migration `0001_messages.sql`, `src/agent/{config, db,
+conversation, guards, loop, chat, leads}.ts`, `prompts/{types, v1, index}.ts`, `testing/fake-provider.ts`,
+  `npm run agent:try` (`scripts/try-agent.ts`, real models, fixed "now", fresh in-memory DB).
+- Changes from the plan:
+  - Messages are ordered by an auto-increment `id`, not a `seq` column (simpler, atomic).
+  - `messages.meta` added: provider, model, prompt version, tokens, latency, outcome per reply (agent view now,
+    tracing in Phase 3).
+  - **The price guard trusts only tool results**, not numbers the buyer typed. The buyer's budget passes once
+    `update_lead` saved it. (Found in review: "Is L02 really 80k?" → "Yes, AED 80,000" passed before.)
+  - Migrations moved to `src/db/migrate.ts` (scripts/tests only), so the app never computes an
+    `import.meta.url` path.
+  - `scripts/try-agent.ts` added for real-model smoke runs (not an eval: it prints, it doesn't score).
+- **Real runs** (`npm run agent:try`, now = Mon 16 Nov 2026 14:05 Dubai):
+  - **Claude Haiku 5.5:** qualify → details → slots → booked Sat 21 Nov 2026 11:00 (lead `viewing_booked`, score 95) → separate chat handed off on request. ~2 s per message, prompt cache hit on every call, ~US$0.003 per run.
+    Same result after the review fixes.
+  - **Gemma 3 4B:** first run broken by LM Studio's **4,096-token context** (prompt + tools ≈ 2.7K; silently
+    truncated). Reloaded with 16,384. Then: the loop stayed safe (max-steps fallback, double booking refused by the
+    tool), but the model booked viewings nobody asked for (3×, wrong days), never called `handoff_to_human` when
+    asked for a person, wrote `[END_CHAT]` into replies, 9–60 s per message. Eval cases for Phase 4.
+
+**Architecture review (step 2b): needs changes → fixed.** 3 blocking issues, each with a test that was shown to
+fail with the bug put back (the first two):
+
+1. A `tool_use` stop with no tool calls was saved as an assistant turn with nothing after it (two assistant turns
+   in a row next). → Loop treats it as a text answer; the local adapter maps "tool_calls" with no calls to `end`.
+2. The turn timer was not cleared when our own code threw. → `try/finally` around the loop; fake-timer test.
+3. The price guard trusted buyer numbers (hole above). → Only tool results; tests for both cases.
+
+Suggestions applied: guard regex fixes (lowercase "m" = metres unless next to a currency; Arabic-Indic digits;
+bare comma-grouped amounts ≥ 10,000; decimals kept); summary shows a handoff even with no requirements;
+`listLeads` loads all viewings in one query; auto-handoff log entry carries its error; tests for timeout after
+tools, stop `other`, and 2 + 2 failures across tools (no handoff); docs (request flow, agent loop table, data).
+
+Deferred: if our own code throws mid-turn after tools ran, tool side effects stay but no messages are saved
+(design the API error path in 2c); two messages for one lead at the same time (the UI will block sending while a
+reply is pending); `server-only` imports and `serverExternalPackages` check (2c).

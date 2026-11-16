@@ -1,4 +1,5 @@
-import { createDb, migrateDb } from "./client";
+import { createDb } from "./client";
+import { migrateDb } from "./migrate";
 import { seedListings } from "./seed";
 
 /** A fresh, isolated in-memory database with all migrations and the seed listings. For tests only. */

@@ -15,7 +15,7 @@ An agent view page shows each lead's fields, score and a conversation summary.
 
 ```
 src/app      UI + API routes                     ──►  may import: agent
-src/agent    prompts, tool loop, guards          ──►  may import: tools, agent/llm
+src/agent    prompts, tool loop, guards, chat    ──►  may import: tools, agent/llm, db (ADR 0004)
 src/agent/llm  model provider adapters           ──►  may import: provider SDKs only
 src/tools    one file per tool (Zod + impl)      ──►  may import: db
 src/db       schema + seed                       ──►  imports no other layer
@@ -30,13 +30,40 @@ Enforced by `no-restricted-imports` in `eslint.config.mjs` (also: always use the
 ```
 Buyer message
   → POST /api/chat (src/app)
-  → runAgent(conversation) (src/agent/loop.ts)
-      → LlmProvider.generate(messages, tools)   (src/agent/llm — Claude or local)
+  → handleBuyerMessage({ leadId?, message })        (src/agent/chat.ts: Zod input, create lead, load chat)
+  → runAgentTurn(...)                               (src/agent/loop.ts)
+      → LlmProvider.generate(system, messages, tools, signal)   (src/agent/llm — Claude or local)
       → model asks for a tool → validate input with Zod → run tool (src/tools) → result back to model
-      → repeat until the model replies (max steps + timeout)
-  → guards check the reply (no invented prices, handoff rules)
-  → reply to buyer + lead fields saved + trace sent to Langfuse
+      → repeat until the model replies (max 8 calls, 90 s timeout)
+      → price guard checks the reply (src/agent/guards.ts)
+  → save the turn's messages in one batch (src/agent/conversation.ts) → reply + lead view
+  → (Phase 3) trace sent to Langfuse
 ```
+
+## Agent loop
+
+`runAgentTurn` never crashes on model output. Every way a turn can end has an `outcome`, a test, and (except
+`replied`) a fixed safe reply in the buyer's language:
+
+| Outcome          | When                                                                              |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `replied`        | the model answered with text that passed the guards                               |
+| `price_guard`    | the reply had an AED amount no tool returned, twice (one retry with a correction) |
+| `tool_failures`  | the same tool was misused 3 times in one message → automatic `handoff_to_human`   |
+| `max_steps`      | 8 model calls without a reply                                                     |
+| `timeout`        | 90 s used up (the running model call is aborted)                                  |
+| `provider_error` | the provider failed after the SDK's retries, or returned an empty reply           |
+| `refusal`        | the model declined                                                                |
+| `cut_off`        | the reply hit `max_tokens`                                                        |
+
+- Bad tool input, bad JSON, unknown tools and crashing tools become error results the model can read and fix.
+- **Prices come only from tool results.** The buyer's own budget is allowed once `update_lead` has saved it
+  (its result contains it); a number only the buyer said is not trusted.
+- A saved conversation stays replayable: no two assistant turns in a row, no unanswered tool calls, and a draft
+  that failed the price guard is never stored.
+- Bugs in our own code (not provider errors) are re-thrown; the turn timer is cleared on every path.
+- Prompts are versioned (`src/agent/prompts/v1.ts`); each saved reply records provider, model, prompt version,
+  tokens, latency and outcome.
 
 ## Model layer
 
@@ -71,7 +98,10 @@ Rules the adapters follow:
 
 SQLite + Drizzle with the libSQL client (see [ADR 0001](decisions/0001-stack.md), [ADR 0003](decisions/0003-libsql-driver.md)).
 
-- Tables: `listings` (30 fixed, fictional: 8 areas, rent and sale, ready and off-plan), `leads`, `viewings`.
+- Tables: `listings` (30 fixed, fictional: 8 areas, rent and sale, ready and off-plan), `leads`, `viewings`,
+  `messages` (the conversation, one row per message, ordered by id; see [ADR 0004](decisions/0004-agent-owns-conversation.md)).
+- Migrations run only from scripts and tests (`src/db/migrate.ts`), never from the app: Next.js bundling changes
+  `import.meta.url` paths.
 - Schema changes: edit `src/db/schema.ts` → `npm run db:generate` → commit the migration in `src/db/migrations/`.
 - Local data: `npm run db:seed` (migrates and upserts the listings into `local.db`).
 - Tests: a fresh in-memory database per test (`src/db/test-db.ts`).

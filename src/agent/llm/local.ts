@@ -112,9 +112,11 @@ export function parseLocalResponse(response: ChatCompletion): LlmResult {
     call.type === "function" ? [call] : [],
   );
 
-  // Some local servers report "stop" even when the message contains tool calls.
+  // Some local servers report "stop" even when the message contains tool calls, or "tool_calls" with none.
+  // Contract: `tool_use` always comes with at least one call.
   let stop = mapStop(choice.finish_reason);
   if (functionCalls.length > 0 && stop === "end") stop = "tool_use";
+  if (functionCalls.length === 0 && stop === "tool_use") stop = "end";
 
   const toolCalls =
     stop === "tool_use"

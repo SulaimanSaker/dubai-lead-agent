@@ -1,5 +1,6 @@
 import { getTableColumns, sql } from "drizzle-orm";
-import { createDb, migrateDb, type Db } from "./client";
+import { createDb, type Db } from "./client";
+import { migrateDb } from "./migrate";
 import { listings } from "./schema";
 import { SEED_LISTINGS } from "./seed-data";
 
