@@ -72,7 +72,9 @@ export type TurnOutcome =
   | "timeout"
   | "provider_error"
   | "refusal"
-  | "cut_off";
+  | "cut_off"
+  /** A bug or database error in our own code. Logged; the messages so far are kept. */
+  | "internal_error";
 
 export interface AgentTurnResult {
   reply: string;
@@ -98,8 +100,9 @@ const MISUSE_ERRORS = new Set(["invalid_input", "unknown_tool", "tool_crashed"])
 
 /**
  * Answer one buyer message: call the model, run the tools it asks for, send the results back,
- * repeat until it replies. Never throws for model or tool problems: those end in a safe reply.
- * Bugs in our own code (not LlmError) are re-thrown.
+ * repeat until it replies. Never throws: model and tool problems end in a safe reply, and a bug or
+ * database error in our own code is logged and ends as `internal_error`, keeping the messages so far
+ * (so tool side effects, like a booking, are never saved without the messages that explain them).
  */
 export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResult> {
   const limits = { ...DEFAULT_LIMITS, ...input.limits };
@@ -222,6 +225,16 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
     }
 
     return fallback("error", "max_steps", `no reply after ${limits.maxSteps} model calls`);
+  } catch (error) {
+    // Not a model problem (those are handled above): a bug or a database error. Make it loud in the logs,
+    // but still end the turn cleanly. newMessages ends with a user or tool message here (runTool never
+    // throws), so the fixed reply keeps the conversation valid.
+    console.error(`[agent] internal error for lead ${input.leadId}:`, error);
+    return fallback(
+      "error",
+      "internal_error",
+      error instanceof Error ? error.message : String(error),
+    );
   } finally {
     clearTimeout(timer);
   }

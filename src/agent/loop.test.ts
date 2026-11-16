@@ -252,9 +252,23 @@ describe("runAgentTurn: limits and provider problems end in a safe reply", () =>
     expect(result.newMessages.map((m) => m.role)).toEqual(["user", "assistant"]);
   });
 
-  it("re-throws bugs that are not provider errors", async () => {
-    const { run } = turn([new TypeError("x is undefined")]);
-    await expect(run()).rejects.toThrow(TypeError);
+  it("logs a bug in our own code and ends with internal_error, keeping the messages so far", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { run } = turn([
+      toolStep(["update_lead", { budgetAed: 120000 }]),
+      new TypeError("x is undefined"),
+    ]);
+    const result = await run();
+    expect(result).toMatchObject({ outcome: "internal_error", error: "x is undefined" });
+    expect(log).toHaveBeenCalled();
+    // The saved update_lead call and its result stay, followed by the safe reply.
+    expect(result.newMessages.map((m) => m.role)).toEqual([
+      "user",
+      "assistant",
+      "tool",
+      "assistant",
+    ]);
+    expectAlternation(result.newMessages);
   });
 
   it.each([
@@ -377,9 +391,10 @@ describe("runAgentTurn: edge cases from review", () => {
 
   it("clears the turn timer even when our own code throws", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       const { run } = turn([new TypeError("bug in our code")]);
-      await expect(run()).rejects.toThrow(TypeError);
+      expect((await run()).outcome).toBe("internal_error");
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();

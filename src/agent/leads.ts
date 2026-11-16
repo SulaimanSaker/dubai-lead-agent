@@ -158,11 +158,36 @@ export async function getLeadView(db: Db, leadId: string): Promise<LeadView | nu
 export async function getLeadDetail(db: Db, leadId: string): Promise<LeadDetail | null> {
   const view = await getLeadView(db, leadId);
   if (!view) return null;
+  const transcript = await loadTranscript(db, leadId);
+  const turns = (await loadTurnMeta(db, leadId)).map((row) => ({
+    createdAt: row.createdAt,
+    meta: row.meta ?? {},
+  }));
+  return { ...view, transcript, turns };
+}
+
+/**
+ * What the buyer's chat page may see: the bubbles and the lead summary. No tool names or model data
+ * (those are for the agent view only).
+ */
+export async function getChatView(
+  db: Db,
+  leadId: string,
+): Promise<{ lead: LeadView; messages: { role: "buyer" | "agent"; text: string }[] } | null> {
+  const lead = await getLeadView(db, leadId);
+  if (!lead) return null;
+  const messages = (await loadTranscript(db, leadId)).map(({ role, text }) => ({ role, text }));
+  return { lead, messages };
+}
+
+/** Buyer messages and final agent replies, with the tools the agent used before each reply. */
+async function loadTranscript(db: Db, leadId: string): Promise<TranscriptEntry[]> {
   const transcript: TranscriptEntry[] = [];
   let toolsUsed: string[] = [];
   for (const message of await loadConversation(db, leadId)) {
-    if (message.role === "user")
+    if (message.role === "user") {
       transcript.push({ role: "buyer", text: message.text, toolsUsed: [] });
+    }
     if (message.role === "assistant") {
       toolsUsed.push(...message.toolCalls.map((call) => call.name));
       if (message.toolCalls.length === 0) {
@@ -171,11 +196,7 @@ export async function getLeadDetail(db: Db, leadId: string): Promise<LeadDetail 
       }
     }
   }
-  const turns = (await loadTurnMeta(db, leadId)).map((row) => ({
-    createdAt: row.createdAt,
-    meta: row.meta ?? {},
-  }));
-  return { ...view, transcript, turns };
+  return transcript;
 }
 
 /** All leads, most recently active first. */

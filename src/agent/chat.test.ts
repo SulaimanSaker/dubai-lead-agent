@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import { handleBuyerMessage, type ChatDeps } from "@/agent/chat";
 import { appendMessages, loadConversation, loadTurnMeta } from "@/agent/conversation";
-import { getLeadDetail } from "@/agent/leads";
+import { getChatView, getLeadDetail } from "@/agent/leads";
 import { FakeProvider, textStep, toolStep, type FakeStep } from "@/agent/testing/fake-provider";
 import type { Db } from "@/db/client";
 import { messages } from "@/db/schema";
@@ -61,6 +61,46 @@ describe("handleBuyerMessage", () => {
       "user",
     ]);
     expect(await loadConversation(db, LEAD_ID)).toHaveLength(4);
+  });
+
+  it("handles two messages for the same lead one after another, not at the same time", async () => {
+    await handleBuyerMessage({ message: "Hi" }, deps([textStep("Hello!")]));
+    const first = deps([textStep("Rent noted.")]);
+    const second = deps([textStep("Marina noted.")]);
+    await Promise.all([
+      handleBuyerMessage({ leadId: LEAD_ID, message: "Rent" }, first),
+      handleBuyerMessage({ leadId: LEAD_ID, message: "Marina" }, second),
+    ]);
+    // The second call saw the first call's question and answer.
+    expect(second.provider.requests[0]?.messages.map((m) => m.role)).toEqual([
+      "user",
+      "assistant",
+      "user",
+      "assistant",
+      "user",
+    ]);
+    const saved = await loadConversation(db, LEAD_ID);
+    expect(saved.flatMap((m) => (m.role === "user" ? [m.text] : []))).toEqual([
+      "Hi",
+      "Rent",
+      "Marina",
+    ]);
+  });
+
+  it("does not let a failing message block the next one for the same lead", async () => {
+    await handleBuyerMessage({ message: "Hi" }, deps([textStep("Hello!")]));
+    const broken: ChatDeps = {
+      ...deps([textStep("never")]),
+      // Same database, but saving the turn fails.
+      db: Object.assign(Object.create(db) as Db, {
+        batch: () => Promise.reject(new Error("disk full")),
+      }),
+    };
+    const results = await Promise.allSettled([
+      handleBuyerMessage({ leadId: LEAD_ID, message: "Rent" }, broken),
+      handleBuyerMessage({ leadId: LEAD_ID, message: "Marina" }, deps([textStep("Marina noted.")])),
+    ]);
+    expect(results.map((r) => r.status)).toEqual(["rejected", "fulfilled"]);
   });
 
   it("stores per-turn facts on the reply (provider, model, prompt version, tokens)", async () => {
@@ -125,6 +165,22 @@ describe("conversation storage", () => {
       createdAt: NOW.toISOString(),
     });
     await expect(loadConversation(db, LEAD_ID)).rejects.toThrow(/Stored message \d+ .* is invalid/);
+  });
+});
+
+describe("getChatView", () => {
+  it("gives the buyer page bubbles and the lead summary, but no tool names or model data", async () => {
+    await handleBuyerMessage(
+      { message: "2 bed in Marina" },
+      deps([toolStep(["update_lead", { beds: 2 }]), textStep("Noted!")]),
+    );
+    const chat = await getChatView(db, LEAD_ID);
+    expect(chat?.messages).toEqual([
+      { role: "buyer", text: "2 bed in Marina" },
+      { role: "agent", text: "Noted!" },
+    ]);
+    expect(chat?.lead.fields.beds).toBe(2);
+    expect(JSON.stringify(chat)).not.toMatch(/update_lead|fake-model|inputTokens/);
   });
 });
 

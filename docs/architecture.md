@@ -14,7 +14,7 @@ An agent view page shows each lead's fields, score and a conversation summary.
 ## Layers
 
 ```
-src/app      UI + API routes                     ──►  may import: agent
+src/app      UI + API routes                     ──►  may import: @/agent only (its public API, index.ts)
 src/agent    prompts, tool loop, guards, chat    ──►  may import: tools, agent/llm, db (ADR 0004)
 src/agent/llm  model provider adapters           ──►  may import: provider SDKs only
 src/tools    one file per tool (Zod + impl)      ──►  may import: db
@@ -24,6 +24,10 @@ evals/       golden cases, checks, runner        ──►  may import: agent, t
 
 **Rule:** imports only point right. The UI never touches the database; tools never call the model.
 Enforced by `no-restricted-imports` in `eslint.config.mjs` (also: always use the `@/` alias, never `../`).
+
+`src/agent/index.ts` is the agent's public API for the app (`sendBuyerMessage`, `getLeads`, `getLead`,
+`getModelInfo`, types). It starts with `import "server-only"`, so agent code can never be bundled into the
+browser; client components import only types from it. Tests and scripts import agent modules directly.
 
 ## Request flow
 
@@ -55,15 +59,38 @@ Buyer message
 | `provider_error` | the provider failed after the SDK's retries, or returned an empty reply           |
 | `refusal`        | the model declined                                                                |
 | `cut_off`        | the reply hit `max_tokens`                                                        |
+| `internal_error` | a bug or database error in our own code (logged; the messages so far are kept)    |
 
 - Bad tool input, bad JSON, unknown tools and crashing tools become error results the model can read and fix.
 - **Prices come only from tool results.** The buyer's own budget is allowed once `update_lead` has saved it
   (its result contains it); a number only the buyer said is not trusted.
 - A saved conversation stays replayable: no two assistant turns in a row, no unanswered tool calls, and a draft
   that failed the price guard is never stored.
-- Bugs in our own code (not provider errors) are re-thrown; the turn timer is cleared on every path.
+- Bugs in our own code are logged loudly and end as `internal_error` instead of throwing: a booking made by a tool
+  must never be saved without the messages that explain it. The turn timer is cleared on every path.
+- Messages for the same lead are handled one at a time (an in-process queue in `chat.ts`), so a double submit
+  can't interleave two turns. One server process only; several would need a database lock.
 - Prompts are versioned (`src/agent/prompts/v1.ts`); each saved reply records provider, model, prompt version,
   tokens, latency and outcome.
+
+## App (UI + API)
+
+| Route            | What                                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `/`              | Short intro and links                                                                        |
+| `/chat`          | Messenger-style buyer chat (client component) + live lead card. `?lead=<id>` restores a chat |
+| `/leads`         | Agent view: all leads with status, score, summary, missing fields                            |
+| `/leads/[id]`    | One lead: fields, handoff, viewings, transcript with tools used, model turns (tokens, time)  |
+| `POST /api/chat` | `{ leadId?, message }` → reply + lead. 400 bad input · 503 database not set up · 500 logged  |
+
+- `cacheComponents` is on: pages that read the database do it inside `<Suspense>` after `await connection()`,
+  so the shell is static and the data is always fresh.
+- Model replies are rendered as text with `**bold**` only, never as HTML.
+- The chat blocks sending while a reply is pending; on an error the buyer's text is put back in the input.
+  "New chat" resets the state in place (a link to `/chat` would keep the old state: same page, same component).
+- The buyer page gets only chat bubbles and the lead summary (`getChat`); tool names and per-turn model data are
+  for the agent view only.
+- `POST /api/chat` refuses bodies over 16,000 characters (413) before parsing them.
 
 ## Model layer
 
@@ -89,7 +116,7 @@ Rules the adapters follow:
   provider is rebuilt from the neutral fields, so one conversation can switch provider.
 - **All tool results of one step go back together** (one user message for Claude).
 - **Retries live in the SDKs** (`maxRetries`, with backoff for 429 / 5xx / network). Other errors become `LlmError`;
-  anything else is a bug and is re-thrown.
+  anything else is a bug: the adapter re-throws it, and the loop ends the turn as `internal_error`.
 - **Contract test** (`src/agent/llm-contract.test.ts`): the same scenarios through both adapters from saved
   responses (`src/agent/llm/fixtures/`, recorded with `npm run llm:record -- local|claude`) must give the same
   shape and valid tool arguments.

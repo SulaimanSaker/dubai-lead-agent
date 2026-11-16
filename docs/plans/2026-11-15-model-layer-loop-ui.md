@@ -128,7 +128,8 @@ probe). That is a finding for Phase 4 evals, not something to hide.
   happens we record it as a finding; we don't add model-specific hacks in v1.
 - **Summary on the agent view** is built by code in v1. An LLM summary (Claude Haiku 5.5) can come later.
 
-**Status:** approved (2026-11-15): pause after each step; ADR 0004 allows agent → db; Claude effort `low`
+**Status:** done (2026-11-16). Approved 2026-11-15: pause after each step; ADR 0004 allows agent → db; Claude
+effort `low`.
 
 ## Progress
 
@@ -225,3 +226,41 @@ tools, stop `other`, and 2 + 2 failures across tools (no handoff); docs (request
 Deferred: if our own code throws mid-turn after tools ran, tool side effects stay but no messages are saved
 (design the API error path in 2c); two messages for one lead at the same time (the UI will block sending while a
 reply is pending); `server-only` imports and `serverExternalPackages` check (2c).
+
+Closed in 2c: the mid-turn error path (loop ends as `internal_error`, messages kept), concurrent messages (per-lead
+queue + UI guard), `server-only` (in `src/agent/index.ts`). `serverExternalPackages`: not needed;
+`@libsql/client` is on the built-in list of server-external packages in Next.js, and `npm run build` passes.
+
+### Step 2c: API, chat UI and agent view (done, 2026-11-16)
+
+- `npm run check` green: **204 tests**; `npm run build` green (`/`, `/chat`, `/leads`, `/leads/[id]` partial
+  prerender, `/api/chat` dynamic).
+- Built: `src/agent/index.ts` (public API, `server-only`), `src/agent/errors.ts`, `internal_error` outcome, per-lead
+  queue in `chat.ts`, `POST /api/chat` (+ tests), `/chat` (client chat + live lead card), `/leads`, `/leads/[id]`
+  (transcript with tools used, model turns table), home page. ESLint: app may import only `@/agent`.
+- Changes from the plan:
+  - The response is `{ leadId, reply, outcome, provider, model, lead }` (outcome and model shown in the UI).
+  - Lead id in the URL is set with `history.replaceState` (no navigation); "New chat" resets state in place.
+  - The chat page shows a **live lead card** (demo feature: the fields fill in as you chat).
+  - Body size limit (413 over 16,000 characters) and a 503 "run `npm run db:seed`" for a missing database.
+  - The loop no longer re-throws our own bugs; it logs them and ends as `internal_error` (evals must count this
+    outcome as a failure).
+- **End-to-end (done criteria):**
+  - **Claude Haiku 5.5, in Chrome:** "2 bed Marina, 120k, cash" → L02 at AED 115,000 (score 65) → "Next month.
+    Saturday?" → 10:00 / 13:00 / 16:00 offered (qualified, 80) → "13:00 please" → booked Sat 21 Nov 2026 13:00
+    (viewing_booked, 95) → agent view, reload, "New chat" → "real person" → handed off (separate lead). 2–3 s per
+    reply. **Passed.**
+  - **Gemma 3 4B:** the app works through the same route (HTTP 200, `replied`, 45 s per message), and in
+    `npm run agent:try` it qualified the lead and booked viewings, but **not correctly**: it booked viewings nobody
+    asked for, invented a timeline, ignored "Saturday" and never handed off when asked. The flow runs on both
+    providers; only Claude does the job. This is the baseline for the Phase 4 evals.
+
+**Architecture review (step 2c): needs changes → fixed.** Blocking: "New chat" right after a fresh chat kept the
+old conversation (same page and component, so React kept the state; the next message went to the old lead).
+Fixed by resetting state in place; checked in Chrome (the handoff became a separate lead). Also fixed: a pending
+reply could rewrite the URL after leaving the page (request aborted on unmount); the home page model label was
+frozen at build time (now read at request time); a non-JSON error page showed a parser error; a fast double click
+could send twice (ref guard). Applied suggestions: the buyer page gets only bubbles + lead summary (`getChat`), the
+message list is a `role="log"` live region, `handleBuyerMessage` takes `unknown`, a body size limit, tests for a
+failing message not blocking the next, "message too long", and huge bodies. Known and accepted: an unknown
+`/leads/[id]` shows the not-found page with status 200 (streamed after the shell), fine for a demo.

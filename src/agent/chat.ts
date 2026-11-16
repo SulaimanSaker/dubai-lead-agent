@@ -44,11 +44,34 @@ function defaultDeps(): ChatDeps {
  * Throws a ZodError for invalid input (the API route turns it into a 400).
  */
 export async function handleBuyerMessage(
-  input: BuyerMessage,
+  input: unknown, // a BuyerMessage, validated below
   deps: ChatDeps = defaultDeps(),
 ): Promise<ChatResponse> {
   const { leadId: givenId, message } = buyerMessageSchema.parse(input);
   const leadId = givenId ?? deps.newId();
+  return oneAtATime(leadId, () => runTurn(leadId, message, deps));
+}
+
+/**
+ * Messages for the same lead run one after another, never at the same time: two at once (a double
+ * submit) would both load the same history and save an order the model never saw.
+ * In-process only, which is enough for one server; several servers would need a database lock.
+ */
+const leadQueues = new Map<string, Promise<unknown>>();
+
+function oneAtATime<T>(leadId: string, task: () => Promise<T>): Promise<T> {
+  const previous = leadQueues.get(leadId) ?? Promise.resolve();
+  const next = previous.catch(() => undefined).then(task);
+  leadQueues.set(leadId, next);
+  void next
+    .finally(() => {
+      if (leadQueues.get(leadId) === next) leadQueues.delete(leadId);
+    })
+    .catch(() => undefined);
+  return next;
+}
+
+async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise<ChatResponse> {
   const now = deps.now();
 
   await ensureLead({ db: deps.db, leadId, now });

@@ -63,6 +63,11 @@ const eslintConfig = defineConfig([
           ["tools", "db"],
           "app/ must go through @/agent — not tools or db directly (docs/architecture.md).",
         ),
+        {
+          group: ["@/agent/*"],
+          message:
+            "app/ uses the agent's public API: import from @/agent (src/agent/index.ts), not its internals.",
+        },
       ),
     },
   },
