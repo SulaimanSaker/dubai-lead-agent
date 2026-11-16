@@ -1,0 +1,33 @@
+{
+  "recorded": "2026-11-15T18:24:10.715Z",
+  "model": "google/gemma-3-4b",
+  "response": {
+    "id": "chatcmpl-om6yj6libi2ise514icpg",
+    "object": "chat.completion",
+    "created": 1794767049,
+    "model": "google/gemma-3-4b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Okay, let’s start. What are you looking for today?",
+          "reasoning_content": "",
+          "tool_calls": []
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2775,
+      "completion_tokens": 15,
+      "total_tokens": 2790,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "stats": {},
+    "system_fingerprint": "google/gemma-3-4b"
+  }
+}

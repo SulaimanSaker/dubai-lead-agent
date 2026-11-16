@@ -1,0 +1,42 @@
+{
+  "recorded": "2026-11-15T18:24:14.728Z",
+  "model": "google/gemma-3-4b",
+  "response": {
+    "id": "chatcmpl-k9st7fhli4e9k6puxdxfid",
+    "object": "chat.completion",
+    "created": 1794767050,
+    "model": "google/gemma-3-4b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "",
+          "reasoning_content": "",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "614387937",
+              "function": {
+                "name": "search_listings",
+                "arguments": "{\"purpose\":\"rent\",\"area\":\"Dubai Marina\",\"beds\":2,\"maxPriceAed\":120000,\"propertyType\":\"apartment\",\"status\":\"ready\"}"
+              }
+            }
+          ]
+        },
+        "logprobs": null,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2782,
+      "completion_tokens": 72,
+      "total_tokens": 2854,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "stats": {},
+    "system_fingerprint": "google/gemma-3-4b"
+  }
+}

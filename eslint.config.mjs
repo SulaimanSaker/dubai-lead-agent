@@ -50,7 +50,7 @@ const eslintConfig = defineConfig([
 
   // Default for all source files: no provider SDKs, no ../ imports.
   {
-    files: ["src/**/*.{ts,tsx}", "evals/**/*.ts"],
+    files: ["src/**/*.{ts,tsx}", "evals/**/*.ts", "scripts/**/*.ts"],
     rules: { "no-restricted-imports": restrict(...PROVIDER_SDKS) },
   },
   // app: UI + routes. Talks to the agent only — never to tools or db directly.

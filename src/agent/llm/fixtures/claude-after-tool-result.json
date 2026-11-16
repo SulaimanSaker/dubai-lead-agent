@@ -1,0 +1,53 @@
+{
+  "recorded": "2026-11-16T18:20:18.083Z",
+  "model": "claude-haiku-5-5",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "id": "msg_011Ch7517vHNNd3Ydd4LDjSa",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "",
+        "signature": "CAQS+wUKEAgTGAI4AUIIdGhpbmtpbmcSDDt7cMOWEdLOg7q0rxoM/08jFo4THuquiP81IjCAq9X4IftTdrEGmHD22+/qMZaRGgW3zhvDphZQ/hhMeHPkgvqSM37CKCn3ALvNLYsqmAXfiQceNpFq20vzEh/BoE+2cqVOiybCnOeICV+FEaB8fwXqxcTo+JlP4dchNTdR/HoVaStjDoE2Q/jxadzMRst29jd/JzKmcGbrawt1M96CPMm1jIUXhQ6mkLtRMIgCJ54CBC2XGUW3OLjuSg/5SjUeCnT63TshunqCFYMWGMoAss+FtR4PIycE6A9MI47nkd4HRcMagdLBCSUE57ql5tZ4+iXpnWVhggSGSGkNz565rG/J3r7zpXldq7t5gDfcI8nNQkOr9PEN2+GgZ4ib3WRbVYc9Q3K7gS1KZtU1k7bgqVGrm7Y1QPW4+15rGFSOFHaMAsUcJRdZ40mBF2oj8vIIOLTBEV3v8U9uQFA/2z7yiBbGW21+dMO8dAKiP3XqI8SF4pIWA4YfptkthTRo/dTiJzjSJj7iAZUkSP+wwBaqVwJ5EIrtvvczS5lxAMLhpkVwb/7R4psG2wbmEo7bpCM+JP7vYwzIEW1ZUlx4a8TZiIdvpfUe1ZY94ZvQ7JQtK5cA48SUDcmLE2IksIvCwwib+qDP/Zb9IhI8U4fbDNbF9DjdkrJoTTHMLmvQjzkb7oAKDmMet6R+eoGf1e8KXpnGX+XnAky0GyIVl74WyyN4bjNof99xE3XBwNWiFCrQ0a0szSvm6hd9Ucq+z7diMu+qeBp8VGdVOApqaxRet4OZU98415UoD/BrMM8qnyXt1gTcvEU6p0FRvSRxdBK7O32xM+daAyZRxfaHwINNOUP5Vc6fTW+9e6xffbLtYpFxtXq9yCoTJFVjAtqMA5wmiOSB05NZ4uZDe1sHz2MUTN/QRV/Nt5pJq29T8sAjn9QQ8qizDwGP7574lFgcnhNBEOJrVHfK6wkKS1rq6a5KdclpPu8+mYy9EfcoGAE="
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01MbkodQV1ipQrp2Fhw95Jhu",
+        "name": "update_lead",
+        "input": {
+          "purpose": "rent",
+          "areas": ["Dubai Marina"],
+          "beds": 2,
+          "budgetAed": 120000,
+          "financing": "cash"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ],
+    "container": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "stop_details": null,
+    "usage": {
+      "input_tokens": 328,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2711,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 212,
+      "output_tokens_details": {
+        "thinking_tokens": 58
+      },
+      "service_tier": "standard",
+      "inference_geo": "global",
+      "speed": "standard"
+    },
+    "diagnostics": null
+  }
+}

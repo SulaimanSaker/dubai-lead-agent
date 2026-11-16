@@ -1,0 +1,42 @@
+{
+  "recorded": "2026-11-15T18:24:19.103Z",
+  "model": "google/gemma-3-4b",
+  "response": {
+    "id": "chatcmpl-cchikl89m9l3qtifzu4b4f",
+    "object": "chat.completion",
+    "created": 1794767054,
+    "model": "google/gemma-3-4b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Great! We have one listing that matches your criteria: a 2-bedroom apartment with marina views in Dubai Marina for 115,000 AED per year. Would you like to hear more about it? ",
+          "reasoning_content": "",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "398514531",
+              "function": {
+                "name": "get_listing",
+                "arguments": "{\"listingId\":\"L02\"}"
+              }
+            }
+          ]
+        },
+        "logprobs": null,
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 2900,
+      "completion_tokens": 79,
+      "total_tokens": 2979,
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      }
+    },
+    "stats": {},
+    "system_fingerprint": "google/gemma-3-4b"
+  }
+}

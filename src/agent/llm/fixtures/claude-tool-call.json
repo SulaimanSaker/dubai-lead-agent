@@ -1,0 +1,67 @@
+{
+  "recorded": "2026-11-16T18:20:16.656Z",
+  "model": "claude-haiku-5-5",
+  "response": {
+    "model": "claude-haiku-5-5",
+    "id": "msg_011Ch74zznQsDipVKH8xWJpk",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "",
+        "signature": "CAQS9wUKEAgTGAI4AUIIdGhpbmtpbmcSDDwgHyORRakrqmaLQBoMFNO1/iwwytN6Iu/PIjAv0VHrscIS3k7zzjByfNWB8r4Y0yKTDvduShQr6EkpCQizPV7dSRQORoZcRH91z5MqlAW/vawTfdONSYpdGBRttXH0un/LrdHnSSEhNjc4xryIUdTgJSzMXf6WlEW5GlvQvidW4PTIbxueCH9jcK1Jki+bghVD0wHZmYudsuiFgCEujDQe0nC7ybtryvVVK6HMsBj6QztlUOn/2ev9Xq8KY/z6jq77M7fJCXAz0jihWMc9wm9bxwVK9j92bP2/ESb0GxeY4fO7W4k3M7RaAXhgRrLzNIjc08VNNkDOrFGX9cMQHpDbMWgRmYh93dyBvgjGobx+WbH2QI32gRddNA0jhMgQTYDH3sNbgCsn37Uh5xyva4k/JPbenIGov1IHaSXJBejizvuqVXP42Ctlkh6WWA+FgvPwAGXtrCdzEglqZE6xdHd1F2ucVKi3zrwGLAjP0gc2nnNz8+OSW3g9Ha1zGT5Jj+Z0B877h5AGcdSTv/eUGeHpzKXV125qYkSFDdjjGRsWHLrq+N6YAOguXlwPVySFCLNzE57Qgh0NRyNmLcfhiCqizco7ldC2P7fz+xp0A33dGYCw3Nlj3dgqugg1UT5UmLGeHraZPDl5dzxXNpyhJJCMHYaaxQasc1Rp7656hnUqfc8UIjyqAHE0cMShxDM+TTTWzx1oKi8MV6tvS/DPMek70/bW07V2WhkYoe1pPGzlbDWGsuvSyrB/gV4PrA9ocMUTah1S/ufUzCy5WXTPVRgs48/5fupk0AH6Q7KFzVQIgUzav9lDu12irNc52alsX1Xc+cGRZpgPb94Mu4vO3D+HEPOf1EDSPUlJXVw9CTzXAltwcQC78iQmDy3XpGTsXq6/Ewv1cojT13aXwXJrtm/Vs4OJ3EyRHN2SPSnPccplisRXz5U89iYbYxaIOefy9HClcgiiAG95ayfebDyFA00rO3gYAQ=="
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_01WnrTzNwkDGkDgnAQXpxnmG",
+        "name": "update_lead",
+        "input": {
+          "purpose": "rent",
+          "beds": 2,
+          "areas": ["Dubai Marina"],
+          "budgetAed": 120000,
+          "financing": "cash"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_012jepxX2gACYEjqCf7sw4Wy",
+        "name": "search_listings",
+        "input": {
+          "area": "Dubai Marina",
+          "beds": 2,
+          "maxPriceAed": 120000,
+          "purpose": "rent"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ],
+    "container": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "stop_details": null,
+    "usage": {
+      "input_tokens": 129,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2711,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 347,
+      "output_tokens_details": {
+        "thinking_tokens": 68
+      },
+      "service_tier": "standard",
+      "inference_geo": "global",
+      "speed": "standard"
+    },
+    "diagnostics": null
+  }
+}

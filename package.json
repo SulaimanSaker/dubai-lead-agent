@@ -14,14 +14,18 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "db:generate": "drizzle-kit generate",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "llm:record": "tsx --env-file-if-exists=.env.local scripts/record-llm-fixtures.ts && prettier --write --log-level warn src/agent/llm/fixtures"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "@libsql/client": "^0.18.0",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.6",
+    "openai": "^7.57.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {

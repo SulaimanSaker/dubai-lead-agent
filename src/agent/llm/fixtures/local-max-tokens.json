@@ -1,0 +1,30 @@
+{
+  "recorded": null,
+  "note": "Synthetic edge case (a real local run cannot produce it on demand), in the shape of the recorded local fixtures.",
+  "model": "google/gemma-3-4b",
+  "response": {
+    "id": "chatcmpl-synthetic-cut",
+    "object": "chat.completion",
+    "created": 1794767050,
+    "model": "google/gemma-3-4b",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "length",
+        "message": {
+          "role": "assistant",
+          "content": "Here are the details of",
+          "tool_calls": [
+            {
+              "type": "function",
+              "id": "333",
+              "function": { "name": "get_listing", "arguments": "{\"listingId\": \"L0" }
+            }
+          ]
+        }
+      }
+    ],
+    "usage": { "prompt_tokens": 2790, "completion_tokens": 4096, "total_tokens": 6886 }
+  }
+}

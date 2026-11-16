@@ -42,13 +42,30 @@ Buyer message
 
 `src/agent/llm/` hides which model runs:
 
-- `types.ts` — `LlmProvider` interface: `generate(messages, tools) → { text, toolCalls }`
+- `types.ts` — `LlmProvider.generate({ system, messages, tools }) → { text, toolCalls, stop, usage, model,
+providerData }`, plus `LlmError` (`rate_limit | timeout | unavailable | bad_request | auth`)
 - `claude.ts` — Claude via the official Anthropic SDK (demo + final evals)
 - `local.ts` — Gemma 3 4B in LM Studio via its OpenAI-compatible API (free development + comparison)
-- `index.ts` — picks one from `LLM_PROVIDER=claude|local`
+- `config.ts` — Zod-validated env (`LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `LMSTUDIO_*`)
+- `index.ts` — `getProvider()` picks one from `LLM_PROVIDER=claude|local`
 
-Tools are defined once (Zod). Each adapter translates them to its provider's tool format.
-See [ADR 0002](decisions/0002-model-layer.md).
+Tools are defined once (Zod). `src/agent/tool-defs.ts` turns them into JSON Schema; each adapter translates that
+to its provider's tool format. See [ADR 0002](decisions/0002-model-layer.md).
+
+Rules the adapters follow:
+
+- **Tool calls only on a tool stop.** A cut-off (`max_tokens`) or refused response never returns tool calls,
+  and its unfinished `tool_use` blocks are not saved (an unanswered `tool_use` makes every later request fail).
+- **Calls can be aborted:** `LlmRequest.signal` goes to the SDK; an aborted call is a `timeout` LlmError.
+- **Bad JSON arguments don't crash.** They come back as `inputError` so the loop can tell the model.
+- **Claude turns are replayed unchanged** (`providerData`, thinking blocks included). A turn written by the other
+  provider is rebuilt from the neutral fields, so one conversation can switch provider.
+- **All tool results of one step go back together** (one user message for Claude).
+- **Retries live in the SDKs** (`maxRetries`, with backoff for 429 / 5xx / network). Other errors become `LlmError`;
+  anything else is a bug and is re-thrown.
+- **Contract test** (`src/agent/llm-contract.test.ts`): the same scenarios through both adapters from saved
+  responses (`src/agent/llm/fixtures/`, recorded with `npm run llm:record -- local|claude`) must give the same
+  shape and valid tool arguments.
 
 ## Data
 

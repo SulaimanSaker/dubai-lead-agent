@@ -1,0 +1,26 @@
+{
+  "recorded": null,
+  "note": "Synthetic: hand-written to the SDK BetaMessage type. Replace with `npm run llm:record -- claude`.",
+  "model": "claude-haiku-5-5",
+  "response": {
+    "id": "msg_synthetic_cut",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-haiku-5-5",
+    "content": [
+      { "type": "text", "text": "Here are the details of" },
+      { "type": "tool_use", "id": "toolu_01SYNTHcut", "name": "get_listing", "input": {} }
+    ],
+    "stop_reason": "max_tokens",
+    "stop_sequence": null,
+    "stop_details": null,
+    "container": null,
+    "context_management": null,
+    "usage": {
+      "input_tokens": 312,
+      "output_tokens": 95,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2950
+    }
+  }
+}
