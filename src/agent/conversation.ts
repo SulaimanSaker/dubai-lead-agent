@@ -4,7 +4,7 @@ import type { LlmMessage } from "@/agent/llm";
 import type { Db } from "@/db/client";
 import { messages } from "@/db/schema";
 
-/** Facts about one assistant turn, for the agent view and (Phase 3) tracing. */
+/** Facts about one assistant turn, for the agent view and evals. The full detail is in the trace. */
 export interface TurnMeta {
   provider: string;
   model: string;
@@ -12,8 +12,13 @@ export interface TurnMeta {
   inputTokens: number;
   outputTokens: number;
   cachedInputTokens: number;
+  cacheWriteInputTokens: number;
+  /** Estimated USD; null when a model has no known price. */
+  costUsd: number | null;
   latencyMs: number;
   outcome: string;
+  /** Langfuse trace id, when tracing was on. */
+  traceId: string | null;
 }
 
 const toolCallSchema = z.object({
@@ -26,6 +31,7 @@ const toolCallSchema = z.object({
 /** Stored messages are read back through this schema: a bad row fails loudly instead of confusing the model. */
 const storedMessageSchema = z.discriminatedUnion("role", [
   z.object({ role: z.literal("user"), text: z.string() }),
+  z.object({ role: z.literal("context"), text: z.string() }),
   z.object({
     role: z.literal("assistant"),
     text: z.string(),

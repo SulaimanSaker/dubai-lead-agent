@@ -14,12 +14,11 @@ import { createLocalProvider } from "@/agent/llm/local";
 import type { LlmMessage, LlmProvider, LlmRequest } from "@/agent/llm/types";
 import { TOOL_DEFS } from "@/agent/tool-defs";
 
-const SYSTEM = {
-  stable:
-    "You are a leasing assistant for a Dubai real estate agency. Use the tools to save what the " +
-    "buyer tells you and to search listings. Never invent listings or prices. Keep replies short.",
-  dynamic: "Current time in Dubai: Sun 15 Nov 2026, 10:00.",
-};
+// Fixed for every scenario (a recording never changes the system prompt mid-conversation).
+const SYSTEM =
+  "You are a leasing assistant for a Dubai real estate agency. Use the tools to save what the " +
+  "buyer tells you and to search listings. Never invent listings or prices. Keep replies short.\n\n" +
+  "Current time in Dubai: Sun 15 Nov 2026, 10:00.";
 
 const BUYER = "2 bed in Dubai Marina, budget around 120k a year, paying cash";
 

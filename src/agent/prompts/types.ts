@@ -1,4 +1,4 @@
-/** What the dynamic part of a prompt may use. Built by the loop on every model call. */
+/** What the dynamic part of a prompt may use. Built by the loop once per buyer message. */
 export interface PromptContext {
   /** "Mon 16 Nov 2026, 14:05": Dubai wall-clock time, with the year. */
   now: { label: string };
@@ -14,6 +14,9 @@ export interface PromptVersion {
   version: string;
   /** Same on every call, so providers can cache it. */
   stable: string;
-  /** Changes per call; always sent after `stable`. */
+  /**
+   * The turn's context (time, lead state). Sent once per buyer message as a `context` message right after it,
+   * never inside the system prompt (ADR 0006).
+   */
   dynamic(context: PromptContext): string;
 }

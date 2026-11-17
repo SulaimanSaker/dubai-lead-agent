@@ -28,6 +28,23 @@ export default function LeadPage({ params }: PageProps<"/leads/[id]">) {
 const number = (value: unknown) =>
   typeof value === "number" ? value.toLocaleString("en-US") : "—";
 
+/** Estimated USD. Tiny amounts need more digits: a Haiku turn costs about a tenth of a cent. */
+const usd = (value: unknown) => {
+  if (typeof value !== "number") return "—";
+  if (value === 0) return "$0";
+  return `$${value < 0.01 ? value.toFixed(5) : value.toFixed(3)}`;
+};
+
+/** Sum of turn costs; unknown if any turn's cost is unknown (older turns saved before costs existed). */
+function totalCost(turns: { meta: Record<string, unknown> }[]): number | null {
+  let total = 0;
+  for (const { meta } of turns) {
+    if (typeof meta.costUsd !== "number") return null;
+    total += meta.costUsd;
+  }
+  return total;
+}
+
 async function LeadDetailView({ params }: Pick<PageProps<"/leads/[id]">, "params">) {
   await connection();
   const { id } = await params;
@@ -94,10 +111,16 @@ async function LeadDetailView({ params }: Pick<PageProps<"/leads/[id]">, "params
         </section>
 
         <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-zinc-900">Model turns</h2>
+          <div className="mb-1 flex items-baseline gap-3">
+            <h2 className="mr-auto text-sm font-semibold text-zinc-900">Model turns</h2>
+            <span className="text-xs text-zinc-600">
+              Total cost: <strong className="tabular-nums">{usd(totalCost(lead.turns))}</strong>
+            </span>
+          </div>
           <p className="mb-3 text-xs text-zinc-500">
             One row per buyer message: which model answered, with which prompt, and what it cost in
-            tokens and time.
+            tokens, money (estimated) and time. The full detail of each turn is in its Langfuse
+            trace.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs tabular-nums">
@@ -108,8 +131,10 @@ async function LeadDetailView({ params }: Pick<PageProps<"/leads/[id]">, "params
                   <th className="py-1 pr-3 font-medium">Prompt</th>
                   <th className="py-1 pr-3 font-medium">Input (cached)</th>
                   <th className="py-1 pr-3 font-medium">Output</th>
+                  <th className="py-1 pr-3 font-medium">Cost</th>
                   <th className="py-1 pr-3 font-medium">Latency</th>
-                  <th className="py-1 font-medium">Outcome</th>
+                  <th className="py-1 pr-3 font-medium">Outcome</th>
+                  <th className="py-1 font-medium">Trace</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -122,15 +147,19 @@ async function LeadDetailView({ params }: Pick<PageProps<"/leads/[id]">, "params
                       {number(meta.inputTokens)} ({number(meta.cachedInputTokens)})
                     </td>
                     <td className="py-1.5 pr-3">{number(meta.outputTokens)}</td>
+                    <td className="py-1.5 pr-3">{usd(meta.costUsd)}</td>
                     <td className="py-1.5 pr-3">
                       {typeof meta.latencyMs === "number"
                         ? `${(meta.latencyMs / 1000).toFixed(1)} s`
                         : "—"}
                     </td>
                     <td
-                      className={`py-1.5 ${meta.outcome === "replied" ? "text-zinc-700" : "font-medium text-rose-700"}`}
+                      className={`py-1.5 pr-3 ${meta.outcome === "replied" ? "text-zinc-700" : "font-medium text-rose-700"}`}
                     >
                       {String(meta.outcome ?? "—")}
+                    </td>
+                    <td className="py-1.5 font-mono" title={String(meta.traceId ?? "")}>
+                      {typeof meta.traceId === "string" ? meta.traceId.slice(0, 8) : "—"}
                     </td>
                   </tr>
                 ))}

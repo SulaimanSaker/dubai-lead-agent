@@ -28,6 +28,12 @@ export interface LlmToolCall {
 
 export type LlmMessage =
   | { role: "user"; text: string }
+  /**
+   * Context from our own code (not the buyer, not the model): the current time and lead state at the start of a
+   * turn, or a correction note. Appended to the conversation and saved like any message, never edited: the
+   * system prompt stays frozen, because Claude ties its thinking to the exact prefix it saw (ADR 0006).
+   */
+  | { role: "context"; text: string }
   | {
       role: "assistant";
       text: string;
@@ -52,10 +58,10 @@ export interface LlmToolDef {
 
 export interface LlmRequest {
   /**
-   * `stable` is the same on every call (cached by providers that support it).
-   * `dynamic` changes per call (time, lead state) and always comes after it.
+   * The system prompt. Must be the SAME text on every call of a conversation (it is cached, and Claude rejects a
+   * replayed thinking block whose system prompt changed). Changing information goes in `context` messages.
    */
-  system: { stable: string; dynamic: string };
+  system: string;
   messages: LlmMessage[];
   tools: LlmToolDef[];
   /** Aborts the call (the loop's turn timeout). An aborted call fails with a `timeout` LlmError. */
@@ -70,6 +76,8 @@ export interface LlmUsage {
   outputTokens: number;
   /** Input tokens served from the prompt cache (0 if the provider has no cache). */
   cachedInputTokens: number;
+  /** Input tokens written to the prompt cache on this call (priced higher than normal input). */
+  cacheWriteInputTokens: number;
 }
 
 export interface LlmResult {

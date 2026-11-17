@@ -47,7 +47,7 @@ describe("handleBuyerMessage", () => {
       lead: { status: "new", missing: ["timeline"], fields: { budgetAed: 120000 } },
     });
     const saved = await loadConversation(db, LEAD_ID);
-    expect(saved.map((m) => m.role)).toEqual(["user", "assistant", "tool", "assistant"]);
+    expect(saved.map((m) => m.role)).toEqual(["user", "context", "assistant", "tool", "assistant"]);
   });
 
   it("continues the saved conversation on the next message", async () => {
@@ -57,10 +57,12 @@ describe("handleBuyerMessage", () => {
 
     expect(second.provider.requests[0]?.messages.map((m) => m.role)).toEqual([
       "user",
+      "context",
       "assistant",
       "user",
+      "context",
     ]);
-    expect(await loadConversation(db, LEAD_ID)).toHaveLength(4);
+    expect(await loadConversation(db, LEAD_ID)).toHaveLength(6);
   });
 
   it("handles two messages for the same lead one after another, not at the same time", async () => {
@@ -74,10 +76,13 @@ describe("handleBuyerMessage", () => {
     // The second call saw the first call's question and answer.
     expect(second.provider.requests[0]?.messages.map((m) => m.role)).toEqual([
       "user",
+      "context",
       "assistant",
       "user",
+      "context",
       "assistant",
       "user",
+      "context",
     ]);
     const saved = await loadConversation(db, LEAD_ID);
     expect(saved.flatMap((m) => (m.role === "user" ? [m.text] : []))).toEqual([

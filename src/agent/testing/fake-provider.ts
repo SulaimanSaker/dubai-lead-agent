@@ -34,7 +34,12 @@ export class FakeProvider implements LlmProvider {
       text: "",
       toolCalls,
       stop,
-      usage: { inputTokens: 100, outputTokens: 10, cachedInputTokens: 50 },
+      usage: {
+        inputTokens: 100,
+        outputTokens: 10,
+        cachedInputTokens: 50,
+        cacheWriteInputTokens: 0,
+      },
       model: this.model,
       providerData: { provider: "local", model: this.model, content: null },
       ...partial,

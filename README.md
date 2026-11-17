@@ -43,6 +43,10 @@ npm run agent:try            # scripted chats against the real model (smoke test
 - `local`: start the LM Studio server with `google/gemma-3-4b` loaded **with a context length of at least 16K**
   (`lms load google/gemma-3-4b --context-length 16384`). The default 4K silently cuts the conversation.
 
+**Tracing (optional):** put `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` from a Langfuse project in `.env.local`.
+Every buyer message then becomes one trace (model calls, tool calls, tokens, cost, latency), and each conversation
+one Langfuse session. Without keys, tracing is off. The agent view also shows cost and trace id per message.
+
 ## Docs
 
 - [Architecture](docs/architecture.md) · [Standards](docs/standards.md) · [Decisions](docs/decisions/README.md)

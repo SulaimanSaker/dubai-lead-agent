@@ -11,7 +11,9 @@ This folder is the "brain": system prompts, the tool-calling loop and the guardr
 ## Prompts
 
 - Prompts live in `prompts/` as versioned files: `v1.ts`, `v2.ts`, … Never edit a released version in place — copy it to a new version (use the `change-prompt` skill) so evals can compare old vs new.
-- Keep fixed instructions first and dynamic data (lead, listings, time) last.
+- The system prompt is frozen: never put changing data (time, lead state) into it. Send it as a `context` message
+  appended to the conversation, and never edit or remove anything already sent (ADR 0006). Claude rejects a
+  replayed thinking block whose prefix changed.
 
 ## Guardrails (non-negotiable)
 

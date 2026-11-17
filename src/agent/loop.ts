@@ -14,6 +14,8 @@ import {
   type LlmToolCall,
   type LlmUsage,
 } from "@/agent/llm";
+import { addCosts, modelCallCostUsd } from "@/agent/llm/pricing";
+import { NOOP_TRACE, type TurnTrace } from "@/agent/observer";
 import { CURRENT_PROMPT, type PromptContext, type PromptVersion } from "@/agent/prompts";
 import { TOOL_DEFS } from "@/agent/tool-defs";
 import type { Db } from "@/db/client";
@@ -44,6 +46,8 @@ export interface AgentTurnInput {
   now: Date;
   prompt?: PromptVersion;
   limits?: Partial<LoopLimits>;
+  /** Where to report model calls, tool calls and guard events (tracing). Default: nowhere. */
+  trace?: TurnTrace;
 }
 
 export interface ToolLogEntry {
@@ -85,6 +89,8 @@ export interface AgentTurnResult {
   guardEvents: GuardEvent[];
   /** Summed over every model call of the turn. */
   usage: LlmUsage;
+  /** Estimated USD cost of all model calls (src/agent/llm/pricing.ts); null if a model has no known price. */
+  costUsd: number | null;
   steps: number;
   latencyMs: number;
   provider: string;
@@ -115,11 +121,18 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
   const newMessages: LlmMessage[] = [userMessage];
   const toolLog: ToolLogEntry[] = [];
   const guardEvents: GuardEvent[] = [];
-  const usage: LlmUsage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
+  const usage: LlmUsage = {
+    inputTokens: 0,
+    outputTokens: 0,
+    cachedInputTokens: 0,
+    cacheWriteInputTokens: 0,
+  };
   const failures = new Map<string, number>();
+  const trace = input.trace ?? NOOP_TRACE;
+  let costUsd: number | null = 0;
   let model = input.provider.model;
   let steps = 0;
-  let correction: string | null = null;
+  let retriedPrices = false;
 
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), limits.timeoutMs);
@@ -139,6 +152,7 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
       toolLog,
       guardEvents,
       usage,
+      costUsd,
       steps,
       latencyMs: Date.now() - started,
       provider: input.provider.name,
@@ -152,23 +166,34 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
 
   // `finally` clears the timer on every path, including errors thrown by our own code.
   try {
+    // The turn's context (Dubai time, lead so far) is added ONCE, after the buyer's message, and saved.
+    // The system prompt never changes, and nothing sent before is ever edited (ADR 0006).
+    const lead = await readLead(input.db, input.leadId, input.now);
+    const context: LlmMessage = {
+      role: "context",
+      text: prompt.dynamic(promptContext(lead, input.now)),
+    };
+    conversation.push(context);
+    newMessages.push(context);
+
     while (steps < limits.maxSteps) {
       steps++;
-      const lead = await readLead(input.db, input.leadId, input.now);
-      const dynamic = prompt.dynamic(promptContext(lead, input.now));
-
       let result: LlmResult;
+      const span = trace.modelCall({
+        step: steps,
+        model: input.provider.model,
+        messages: [...conversation],
+      });
+      const callStarted = Date.now();
       try {
         result = await input.provider.generate({
-          system: {
-            stable: prompt.stable,
-            dynamic: correction ? `${dynamic}\n\n${correction}` : dynamic,
-          },
+          system: prompt.stable,
           messages: conversation,
           tools: [...TOOL_DEFS],
           signal: abort.signal,
         });
       } catch (error) {
+        span.end({ error, latencyMs: Date.now() - callStarted });
         if (!(error instanceof LlmError)) throw error;
         console.error(`[agent] lead ${input.leadId}: ${error.kind}: ${error.message}`);
         return fallback(
@@ -177,7 +202,10 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
           error.message,
         );
       }
+      const callCost = modelCallCostUsd(input.provider.name, result.model, result.usage);
+      span.end({ result, costUsd: callCost, latencyMs: Date.now() - callStarted });
       addUsage(usage, result.usage);
+      costUsd = addCosts(costUsd, callCost);
       model = result.model;
 
       // A tool stop with no usable calls is treated as a text answer (or an empty one below).
@@ -187,7 +215,7 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
         conversation.push(assistant);
         newMessages.push(assistant);
         for (const call of result.toolCalls) {
-          const toolMessage = await runTool(call, ctx, toolLog);
+          const toolMessage = await runTool(call, ctx, toolLog, trace);
           conversation.push(toolMessage);
           newMessages.push(toolMessage);
           if (toolMessage.isError && isMisuse(toolMessage.result)) {
@@ -196,7 +224,7 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
         }
         const failing = [...failures].find(([, count]) => count >= limits.maxToolFailures);
         if (failing) {
-          await handoffAfterFailures(ctx, failing[0], toolLog);
+          await handoffAfterFailures(ctx, failing[0], toolLog, trace);
           return fallback("handoff", "tool_failures", `${failing[0]} failed ${failing[1]} times`);
         }
         if (abort.signal.aborted) return fallback("error", "timeout", "turn timeout after tools");
@@ -211,13 +239,19 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
       const invented = findInventedPrices(result.text, toolResults(conversation));
       if (invented.length > 0) {
         const amounts = invented.map((amount) => amount.raw);
-        if (correction === null) {
-          // Drop the draft (it is never stored) and ask once more with a correction note.
-          guardEvents.push({ type: "invented_price", amounts, action: "retried" });
-          correction = priceCorrectionNote(invented);
+        const action = retriedPrices ? "replaced" : "retried";
+        const event: GuardEvent = { type: "invented_price", amounts, action };
+        guardEvents.push(event);
+        trace.guard(event);
+        if (action === "retried") {
+          // Drop the draft (it was never sent back, so dropping it edits nothing) and ask once more,
+          // with the correction added as a context message (saved, like any message).
+          retriedPrices = true;
+          const note: LlmMessage = { role: "context", text: priceCorrectionNote(invented) };
+          conversation.push(note);
+          newMessages.push(note);
           continue;
         }
-        guardEvents.push({ type: "invented_price", amounts, action: "replaced" });
         return fallback("price_check", "price_guard", `invented prices: ${amounts.join(", ")}`);
       }
 
@@ -245,8 +279,10 @@ async function runTool(
   call: LlmToolCall,
   ctx: ToolContext,
   toolLog: ToolLogEntry[],
+  trace: TurnTrace,
 ): Promise<Extract<LlmMessage, { role: "tool" }>> {
   const started = Date.now();
+  const span = trace.toolCall({ callId: call.id, name: call.name, input: call.input });
   const tool = TOOLS_BY_NAME.get(call.name);
   let result: { ok: boolean; error?: string; message?: string };
 
@@ -279,6 +315,7 @@ async function runTool(
     ...(!result.ok && { error: result.error }),
     durationMs: Date.now() - started,
   });
+  span.end({ ok: result.ok, output: result, ...(!result.ok && { error: result.error }) });
   return {
     role: "tool",
     callId: call.id,
@@ -298,20 +335,28 @@ function isMisuse(resultJson: string): boolean {
 }
 
 /** Hand off automatically, so a human picks the buyer up. Logged like any tool call. */
-async function handoffAfterFailures(ctx: ToolContext, toolName: string, toolLog: ToolLogEntry[]) {
+async function handoffAfterFailures(
+  ctx: ToolContext,
+  toolName: string,
+  toolLog: ToolLogEntry[],
+  trace: TurnTrace,
+) {
   const input = {
     reason: "other",
     summary: `Automatic handoff: the assistant could not use ${toolName} after several tries in one message.`,
   };
   const started = Date.now();
+  const span = trace.toolCall({ callId: "automatic-handoff", name: handoffToHuman.name, input });
   const result = await handoffToHuman.execute(input, ctx);
+  const error = !result.ok && "error" in result ? result.error : undefined;
   toolLog.push({
     name: handoffToHuman.name,
     input,
     ok: result.ok,
-    ...(!result.ok && "error" in result && { error: result.error }),
+    ...(error && { error }),
     durationMs: Date.now() - started,
   });
+  span.end({ ok: result.ok, output: result, ...(error && { error }) });
 }
 
 /**
@@ -353,4 +398,5 @@ function addUsage(total: LlmUsage, add: LlmUsage) {
   total.inputTokens += add.inputTokens;
   total.outputTokens += add.outputTokens;
   total.cachedInputTokens += add.cachedInputTokens;
+  total.cacheWriteInputTokens += add.cacheWriteInputTokens;
 }

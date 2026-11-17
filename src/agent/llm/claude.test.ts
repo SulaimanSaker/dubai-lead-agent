@@ -9,8 +9,8 @@ const TOOL = {
   jsonSchema: { type: "object" as const, properties: { area: { type: "string" } } },
 };
 
-function request(messages: LlmMessage[], dynamic = "Now: Sun 15 Nov 2026"): LlmRequest {
-  return { system: { stable: "Fixed rules.", dynamic }, messages, tools: [TOOL] };
+function request(messages: LlmMessage[]): LlmRequest {
+  return { system: "Fixed rules.", messages, tools: [TOOL] };
 }
 
 const options = { model: "claude-sonnet-5-5", effort: "low" as const };
@@ -39,14 +39,64 @@ describe("buildClaudeRequest", () => {
     expect(params).not.toHaveProperty("betas");
   });
 
-  it("caches the stable system block and puts dynamic data after it", () => {
+  it("sends one fixed, cached system block", () => {
     const params = buildClaudeRequest(request([{ role: "user", text: "hi" }]), options);
     expect(params.system).toEqual([
       { type: "text", text: "Fixed rules.", cache_control: { type: "ephemeral" } },
-      { type: "text", text: "Now: Sun 15 Nov 2026" },
     ]);
-    const noDynamic = buildClaudeRequest(request([{ role: "user", text: "hi" }], ""), options);
-    expect(noDynamic.system).toHaveLength(1);
+  });
+
+  it("sends context as a mid-conversation system message, joining two in a row", () => {
+    const params = buildClaudeRequest(
+      request([
+        { role: "user", text: "hi" },
+        { role: "context", text: "Now: Mon 16 Nov 2026" },
+        { role: "context", text: "Correction: …" },
+      ]),
+      options,
+    );
+    expect(params.messages).toEqual([
+      { role: "user", content: [{ type: "text", text: "hi" }] },
+      { role: "system", content: "Now: Mon 16 Nov 2026\n\nCorrection: …" },
+    ]);
+  });
+
+  it("places a context after tool results, and never right after an assistant turn", () => {
+    const params = buildClaudeRequest(
+      request([
+        { role: "user", text: "2 bed" },
+        { role: "context", text: "Now: Mon" },
+        {
+          role: "assistant",
+          text: "",
+          toolCalls: [{ id: "a", name: "search_listings", input: {}, inputError: null }],
+        },
+        { role: "tool", callId: "a", name: "search_listings", result: "{}", isError: false },
+        { role: "context", text: "Correction: …" },
+      ]),
+      options,
+    );
+    expect(params.messages.map((m) => m.role)).toEqual([
+      "user",
+      "system",
+      "assistant",
+      "user",
+      "system",
+    ]);
+
+    // Invalid placement (after an assistant turn) falls back to user text instead of a 400.
+    const odd = buildClaudeRequest(
+      request([
+        { role: "user", text: "hi" },
+        { role: "assistant", text: "Hello", toolCalls: [] },
+        { role: "context", text: "Now: Mon" },
+      ]),
+      options,
+    );
+    expect(odd.messages.at(-1)).toEqual({
+      role: "user",
+      content: [{ type: "text", text: "[Context for the assistant]\nNow: Mon" }],
+    });
   });
 
   it("maps tools to Claude's format", () => {
@@ -142,7 +192,12 @@ describe("createClaudeProvider", () => {
     const result = await provider.generate(request([{ role: "user", text: "hi" }]));
     expect(result).toMatchObject({ text: "Hello!", stop: "end", toolCalls: [] });
     // Total input = uncached + cache reads + cache writes.
-    expect(result.usage).toEqual({ inputTokens: 130, outputTokens: 5, cachedInputTokens: 100 });
+    expect(result.usage).toEqual({
+      inputTokens: 130,
+      outputTokens: 5,
+      cachedInputTokens: 100,
+      cacheWriteInputTokens: 20,
+    });
     expect(onRawResponse).toHaveBeenCalledWith(message);
   });
 

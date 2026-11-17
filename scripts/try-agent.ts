@@ -13,6 +13,7 @@ import { handleBuyerMessage } from "@/agent/chat";
 import { loadConversation } from "@/agent/conversation";
 import { getLeadDetail } from "@/agent/leads";
 import { getProvider } from "@/agent/llm";
+import { getTurnObserver, startTracing, stopTracing } from "@/agent/tracing";
 import { createTestDb } from "@/db/test-db";
 
 const NOW = new Date("2026-11-16T10:05:00Z");
@@ -33,9 +34,12 @@ const CONVERSATIONS: { name: string; messages: string[] }[] = [
 async function main() {
   const db = await createTestDb();
   const provider = getProvider();
+  const tracing = startTracing();
+  const observer = getTurnObserver();
   console.log(`Provider: ${provider.name} · model: ${provider.model}\n`);
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost: number | null = 0;
 
   for (const conversation of CONVERSATIONS) {
     console.log(`=== ${conversation.name} ===`);
@@ -44,13 +48,15 @@ async function main() {
       const started = Date.now();
       const response = await handleBuyerMessage(
         { leadId, message },
-        { db, provider, now: () => NOW, newId: () => leadId },
+        { db, provider, now: () => NOW, newId: () => leadId, observer },
       );
       const detail = await getLeadDetail(db, leadId);
       const last = detail?.transcript.at(-1);
       const turn = detail?.turns.at(-1)?.meta ?? {};
       totalIn += Number(turn.inputTokens ?? 0);
       totalOut += Number(turn.outputTokens ?? 0);
+      const cost = typeof turn.costUsd === "number" ? turn.costUsd : null;
+      totalCost = totalCost === null || cost === null ? null : totalCost + cost;
       console.log(`Buyer: ${message}`);
       console.log(`  tools: ${last?.toolsUsed.join(", ") || "none"}`);
       // Failed tool calls of this turn: what the model sent and what it was told.
@@ -68,7 +74,10 @@ async function main() {
       console.log(`Agent: ${response.reply}`);
       console.log(
         `  [${response.outcome} · ${Date.now() - started} ms · in ${String(turn.inputTokens)} ` +
-          `(cached ${String(turn.cachedInputTokens)}) · out ${String(turn.outputTokens)}]\n`,
+          `(cached ${String(turn.cachedInputTokens)}) · out ${String(turn.outputTokens)} · ` +
+          `$${cost === null ? "?" : cost.toFixed(5)}` +
+          (turn.traceId ? ` · trace ${String(turn.traceId)}` : "") +
+          `]\n`,
       );
     }
     const lead = await getLeadDetail(db, leadId);
@@ -81,7 +90,12 @@ async function main() {
       `Viewings: ${lead?.viewings.map((v) => `${v.listingId} ${v.label}`).join("; ") || "none"}\n`,
     );
   }
-  console.log(`Total tokens: in ${totalIn} · out ${totalOut}`);
+  console.log(
+    `Total tokens: in ${totalIn} · out ${totalOut} · cost $${totalCost === null ? "?" : totalCost.toFixed(5)}`,
+  );
+  // Send the last spans before the process exits, or they are lost.
+  await stopTracing();
+  if (tracing) console.log("Traces sent to Langfuse (Sessions → one session per conversation).");
 }
 
 main().catch((error: unknown) => {

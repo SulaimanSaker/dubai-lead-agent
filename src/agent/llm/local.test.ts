@@ -15,7 +15,7 @@ const TOOL = {
 };
 
 const baseRequest: LlmRequest = {
-  system: { stable: "Fixed rules.", dynamic: "Now: Sun 15 Nov 2026" },
+  system: "Fixed rules.",
   messages: [{ role: "user", text: "hi" }],
   tools: [TOOL],
 };
@@ -40,12 +40,55 @@ function completion(
 }
 
 describe("buildLocalRequest", () => {
+  it("appends context to the message before it (local templates allow one system message only)", () => {
+    const params = buildLocalRequest(
+      {
+        ...baseRequest,
+        messages: [
+          { role: "user", text: "hi" },
+          { role: "context", text: "Now: Mon 16 Nov 2026" },
+        ],
+      },
+      "m",
+    );
+    expect(params.messages).toEqual([
+      { role: "system", content: "Fixed rules." },
+      { role: "user", content: "hi\n\n[Context for the assistant]\nNow: Mon 16 Nov 2026" },
+    ]);
+  });
+
+  it("appends context after a tool result, and starts a user message after an assistant turn", () => {
+    const params = buildLocalRequest(
+      {
+        ...baseRequest,
+        messages: [
+          { role: "user", text: "hi" },
+          {
+            role: "assistant",
+            text: "",
+            toolCalls: [{ id: "a", name: "search_listings", input: {}, inputError: null }],
+          },
+          { role: "tool", callId: "a", name: "search_listings", result: "{}", isError: false },
+          { role: "context", text: "Correction" },
+          { role: "assistant", text: "Hello", toolCalls: [] },
+          { role: "context", text: "Now: Mon" },
+        ],
+      },
+      "m",
+    );
+    expect(params.messages.slice(3)).toEqual([
+      { role: "tool", tool_call_id: "a", content: "{}\n\n[Context for the assistant]\nCorrection" },
+      { role: "assistant", content: "Hello" },
+      { role: "user", content: "[Context for the assistant]\nNow: Mon" },
+    ]);
+  });
+
   it("uses temperature 0 and one system message (stable rules first)", () => {
     const params = buildLocalRequest(baseRequest, "google/gemma-3-4b");
     expect(params.temperature).toBe(0);
     expect(params.messages[0]).toEqual({
       role: "system",
-      content: "Fixed rules.\n\nNow: Sun 15 Nov 2026",
+      content: "Fixed rules.",
     });
     expect(params.tools).toEqual([
       {
@@ -134,7 +177,12 @@ describe("parseLocalResponse", () => {
     );
     expect(result.text).toBe("");
     expect(result.toolCalls[0]).toMatchObject({ input: {}, inputError: null });
-    expect(result.usage).toEqual({ inputTokens: 50, outputTokens: 7, cachedInputTokens: 0 });
+    expect(result.usage).toEqual({
+      inputTokens: 50,
+      outputTokens: 7,
+      cachedInputTokens: 0,
+      cacheWriteInputTokens: 0,
+    });
   });
 
   it("throws an LlmError when there is no choice at all", () => {

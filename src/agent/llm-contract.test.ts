@@ -37,7 +37,7 @@ function parse(provider: ProviderName, scenario: string): LlmResult {
 
 function buildMessages(provider: ProviderName, messages: LlmMessage[]) {
   const request: LlmRequest = {
-    system: { stable: "rules", dynamic: "now" },
+    system: "rules",
     messages,
     tools: [...TOOL_DEFS],
   };
@@ -93,7 +93,12 @@ const resultShape = z.strictObject({
     }),
   ),
   stop: z.enum(["end", "tool_use", "max_tokens", "refusal", "other"]),
-  usage: z.strictObject({ inputTokens: count, outputTokens: count, cachedInputTokens: count }),
+  usage: z.strictObject({
+    inputTokens: count,
+    outputTokens: count,
+    cachedInputTokens: count,
+    cacheWriteInputTokens: count,
+  }),
   model: z.string().min(1),
   providerData: z.strictObject({
     provider: z.enum(["claude", "local"]),

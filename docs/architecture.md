@@ -41,7 +41,7 @@ Buyer message
       → repeat until the model replies (max 8 calls, 90 s timeout)
       → price guard checks the reply (src/agent/guards.ts)
   → save the turn's messages in one batch (src/agent/conversation.ts) → reply + lead view
-  → (Phase 3) trace sent to Langfuse
+  → one Langfuse trace per message (src/agent/tracing, when keys are set)
 ```
 
 ## Agent loop
@@ -70,6 +70,10 @@ Buyer message
   must never be saved without the messages that explain it. The turn timer is cleared on every path.
 - Messages for the same lead are handled one at a time (an in-process queue in `chat.ts`), so a double submit
   can't interleave two turns. One server process only; several would need a database lock.
+- **The system prompt is frozen** ([ADR 0006](decisions/0006-frozen-system-prompt.md)). The turn's context (Dubai
+  time, lead state) is added once, right after the buyer's message, as a `context` message; a price-guard correction
+  is a `context` message too. Everything sent is saved and never edited: Claude rejects a replayed thinking block
+  whose prefix changed.
 - Prompts are versioned (`src/agent/prompts/v1.ts`); each saved reply records provider, model, prompt version,
   tokens, latency and outcome.
 
@@ -115,6 +119,9 @@ Rules the adapters follow:
 - **Claude turns are replayed unchanged** (`providerData`, thinking blocks included). A turn written by the other
   provider is rebuilt from the neutral fields, so one conversation can switch provider.
 - **All tool results of one step go back together** (one user message for Claude).
+- **`context` messages:** Claude gets a mid-conversation `role: "system"` message (two in a row are joined; if
+  one ever followed an assistant turn it would be sent as user text instead of causing a 400). The local adapter
+  appends the context to the message before it, because local chat templates allow one leading system message.
 - **Retries live in the SDKs** (`maxRetries`, with backoff for 429 / 5xx / network). Other errors become `LlmError`;
   anything else is a bug: the adapter re-throws it, and the loop ends the turn as `internal_error`.
 - **Contract test** (`src/agent/llm-contract.test.ts`): the same scenarios through both adapters from saved
@@ -157,7 +164,17 @@ field has a description (the model only sees names and descriptions).
 
 ## Observability and evals
 
-- **Tracing:** one Langfuse trace per conversation; spans for each LLM call and tool call; tagged with provider, model, prompt version, tokens, cost, latency.
+- **Tracing** ([ADR 0005](decisions/0005-tracing.md)): one Langfuse trace per buyer message (`agent-turn`), all
+  messages of a lead in one Langfuse **session**. Inside: a `generation` per model call (model, messages, output,
+  usage incl. cache reads/writes, cost, stop reason), a `tool` per tool call (input, result; warning when
+  `ok: false`), a `guardrail` when the price guard fires. Tags: provider, model, `prompt-vN`.
+  - The agent reports to a `TurnObserver` (`src/agent/observer.ts`); `src/agent/tracing/` maps it to Langfuse and
+    is the only place allowed to import `@langfuse/*` / `@opentelemetry/*` (ESLint). Observer errors never break
+    a chat.
+  - Started in `src/instrumentation.ts` (Next.js) and by scripts (which flush before exit). Off without
+    `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`.
+  - Cost is computed in code (`src/agent/llm/pricing.ts`, dated price table) and is the same in Langfuse, the
+    saved turn meta and the agent view. Each turn also stores its trace id.
 - **Evals:** golden conversations in `evals/cases/`, code checks + an LLM judge, run per provider and compared. See `evals/CLAUDE.md`.
 
 ## Out of scope (on purpose)

@@ -75,7 +75,7 @@ export const viewings = sqliteTable(
   ],
 );
 
-export const MESSAGE_ROLES = ["user", "assistant", "tool"] as const;
+export const MESSAGE_ROLES = ["user", "context", "assistant", "tool"] as const;
 
 /**
  * The conversation, one row per message, in order of `id`. `content` is the provider-neutral message

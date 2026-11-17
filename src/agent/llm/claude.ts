@@ -85,10 +85,9 @@ export function buildClaudeRequest(
   options: Pick<ClaudeOptions, "model" | "effort">,
 ): MessageCreateParamsNonStreaming {
   const system: MessageCreateParamsNonStreaming["system"] = [
-    // Tools render before the system prompt, so this breakpoint caches tools + stable rules.
-    { type: "text", text: request.system.stable, cache_control: { type: "ephemeral" } },
+    // Tools render before the system prompt, so this breakpoint caches tools + the frozen rules.
+    { type: "text", text: request.system, cache_control: { type: "ephemeral" } },
   ];
-  if (request.system.dynamic) system.push({ type: "text", text: request.system.dynamic });
 
   return {
     model: options.model,
@@ -112,6 +111,8 @@ export function buildClaudeRequest(
  * Our messages → Claude messages.
  * - Tool results become `tool_result` blocks; all results of one step share ONE user message.
  * - A Claude assistant turn is replayed from its raw content (thinking blocks included, unchanged).
+ * - `context` becomes a mid-conversation `role: "system"` message (it always follows a user or tool-result
+ *   message in our conversations). Two in a row are joined into one, the same way every time.
  */
 export function toClaudeMessages(messages: LlmMessage[]): BetaMessageParam[] {
   const out: BetaMessageParam[] = [];
@@ -130,6 +131,17 @@ export function toClaudeMessages(messages: LlmMessage[]): BetaMessageParam[] {
   for (const message of messages) {
     if (message.role === "user") {
       add("user", [{ type: "text", text: message.text }]);
+    } else if (message.role === "context") {
+      const last = out.at(-1);
+      if (last?.role === "system" && typeof last.content === "string") {
+        last.content = `${last.content}\n\n${message.text}`;
+      } else if (last?.role === "user") {
+        out.push({ role: "system", content: message.text });
+      } else {
+        // A system message must follow a user message. Our loop never produces anything else, but if a
+        // future change did, a 400 here would block the lead forever; send it as user text instead.
+        add("user", [{ type: "text", text: `[Context for the assistant]\n${message.text}` }]);
+      }
     } else if (message.role === "tool") {
       add("user", [
         {
@@ -181,6 +193,7 @@ export function parseClaudeResponse(response: BetaMessage): LlmResult {
       inputTokens: usage.input_tokens + cached + (usage.cache_creation_input_tokens ?? 0),
       outputTokens: usage.output_tokens,
       cachedInputTokens: cached,
+      cacheWriteInputTokens: usage.cache_creation_input_tokens ?? 0,
     },
     model: response.model,
     providerData: {

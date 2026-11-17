@@ -21,6 +21,14 @@ const PROVIDER_SDKS = [
   },
 ];
 
+const TRACING_SDKS = [
+  {
+    group: ["@langfuse/*", "@opentelemetry/*"],
+    message:
+      "Tracing SDKs may only be imported inside src/agent/tracing/ (see docs/decisions/0005-tracing.md).",
+  },
+];
+
 const NO_PARENT_RELATIVE = [
   {
     group: ["../*"],
@@ -51,7 +59,7 @@ const eslintConfig = defineConfig([
   // Default for all source files: no provider SDKs, no ../ imports.
   {
     files: ["src/**/*.{ts,tsx}", "evals/**/*.ts", "scripts/**/*.ts"],
-    rules: { "no-restricted-imports": restrict(...PROVIDER_SDKS) },
+    rules: { "no-restricted-imports": restrict(...PROVIDER_SDKS, ...TRACING_SDKS) },
   },
   // app: UI + routes. Talks to the agent only — never to tools or db directly.
   {
@@ -59,6 +67,7 @@ const eslintConfig = defineConfig([
     rules: {
       "no-restricted-imports": restrict(
         ...PROVIDER_SDKS,
+        ...TRACING_SDKS,
         layer(
           ["tools", "db"],
           "app/ must go through @/agent — not tools or db directly (docs/architecture.md).",
@@ -74,10 +83,11 @@ const eslintConfig = defineConfig([
   // agent: may use tools and its own llm/ layer, never the UI.
   {
     files: ["src/agent/**/*.ts"],
-    ignores: ["src/agent/llm/**"],
+    ignores: ["src/agent/llm/**", "src/agent/tracing/**"],
     rules: {
       "no-restricted-imports": restrict(
         ...PROVIDER_SDKS,
+        ...TRACING_SDKS,
         layer(["app"], "agent/ must not import from app/ (layers only point right)."),
       ),
     },
@@ -87,10 +97,21 @@ const eslintConfig = defineConfig([
     files: ["src/agent/llm/**/*.ts"],
     rules: {
       "no-restricted-imports": restrict(
+        ...TRACING_SDKS,
         layer(
           ["app", "tools", "db"],
           "agent/llm/ only adapts model providers; it must not reach into app, tools or db.",
         ),
+      ),
+    },
+  },
+  // agent/tracing: the ONLY place tracing SDKs are allowed. No provider SDKs, never the UI.
+  {
+    files: ["src/agent/tracing/**/*.ts"],
+    rules: {
+      "no-restricted-imports": restrict(
+        ...PROVIDER_SDKS,
+        layer(["app"], "agent/tracing/ must not import from app/ (layers only point right)."),
       ),
     },
   },
@@ -100,6 +121,7 @@ const eslintConfig = defineConfig([
     rules: {
       "no-restricted-imports": restrict(
         ...PROVIDER_SDKS,
+        ...TRACING_SDKS,
         layer(
           ["app", "agent"],
           "tools/ must not import from agent/ or app/ (layers only point right).",
@@ -113,6 +135,7 @@ const eslintConfig = defineConfig([
     rules: {
       "no-restricted-imports": restrict(
         ...PROVIDER_SDKS,
+        ...TRACING_SDKS,
         layer(
           ["app", "agent", "tools"],
           "db/ is the bottom layer and must not import other layers.",

@@ -70,11 +70,10 @@ export function buildLocalRequest(
   request: LlmRequest,
   model: string,
 ): ChatCompletionCreateParamsNonStreaming {
-  const system = [request.system.stable, request.system.dynamic].filter(Boolean).join("\n\n");
   return {
     model,
     temperature: 0,
-    messages: [{ role: "system", content: system }, ...toLocalMessages(request.messages)],
+    messages: [{ role: "system", content: request.system }, ...toLocalMessages(request.messages)],
     tools: request.tools.map((tool) => ({
       type: "function",
       function: { name: tool.name, description: tool.description, parameters: tool.jsonSchema },
@@ -82,24 +81,41 @@ export function buildLocalRequest(
   };
 }
 
-/** Our messages → OpenAI chat messages. Always rebuilt from the neutral fields (no hidden state). */
+/**
+ * Our messages → OpenAI chat messages. Always rebuilt from the neutral fields (no hidden state).
+ * `context` is appended to the message before it: local chat templates (Gemma's) accept only one system
+ * message at the start and strict user/assistant turns.
+ */
 export function toLocalMessages(messages: LlmMessage[]): ChatCompletionMessageParam[] {
-  return messages.map((message): ChatCompletionMessageParam => {
-    if (message.role === "user") return { role: "user", content: message.text };
-    if (message.role === "tool") {
-      return { role: "tool", tool_call_id: message.callId, content: message.result };
+  const out: ChatCompletionMessageParam[] = [];
+  for (const message of messages) {
+    if (message.role === "context") {
+      const last = out.at(-1);
+      const note = `[Context for the assistant]\n${message.text}`;
+      if ((last?.role === "user" || last?.role === "tool") && typeof last.content === "string") {
+        last.content = `${last.content}\n\n${note}`;
+      } else {
+        out.push({ role: "user", content: note });
+      }
+    } else if (message.role === "user") {
+      out.push({ role: "user", content: message.text });
+    } else if (message.role === "tool") {
+      out.push({ role: "tool", tool_call_id: message.callId, content: message.result });
+    } else if (message.toolCalls.length === 0) {
+      out.push({ role: "assistant", content: message.text });
+    } else {
+      out.push({
+        role: "assistant",
+        content: message.text || null,
+        tool_calls: message.toolCalls.map((call) => ({
+          id: call.id,
+          type: "function",
+          function: { name: call.name, arguments: JSON.stringify(call.input ?? {}) },
+        })),
+      });
     }
-    if (message.toolCalls.length === 0) return { role: "assistant", content: message.text };
-    return {
-      role: "assistant",
-      content: message.text || null,
-      tool_calls: message.toolCalls.map((call) => ({
-        id: call.id,
-        type: "function",
-        function: { name: call.name, arguments: JSON.stringify(call.input ?? {}) },
-      })),
-    };
-  });
+  }
+  return out;
 }
 
 export function parseLocalResponse(response: ChatCompletion): LlmResult {
@@ -136,6 +152,7 @@ export function parseLocalResponse(response: ChatCompletion): LlmResult {
       inputTokens: response.usage?.prompt_tokens ?? 0,
       outputTokens: response.usage?.completion_tokens ?? 0,
       cachedInputTokens: response.usage?.prompt_tokens_details?.cached_tokens ?? 0,
+      cacheWriteInputTokens: 0,
     },
     model: response.model,
     providerData: { provider: "local", model: response.model, content: message },

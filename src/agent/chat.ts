@@ -5,6 +5,9 @@ import { getDb } from "@/agent/db";
 import { getLeadView, type LeadView } from "@/agent/leads";
 import { getProvider, type LlmProvider } from "@/agent/llm";
 import { runAgentTurn, type AgentTurnResult, type LoopLimits } from "@/agent/loop";
+import { NOOP_OBSERVER, observeTurn, type TurnObserver } from "@/agent/observer";
+import { CURRENT_PROMPT } from "@/agent/prompts";
+import { getTurnObserver } from "@/agent/tracing";
 import type { Db } from "@/db/client";
 import { ensureLead } from "@/tools/lib/leads";
 
@@ -22,6 +25,8 @@ export interface ChatDeps {
   now: () => Date;
   newId: () => string;
   limits?: Partial<LoopLimits>;
+  /** Tracing. Default in tests: none; in the app: Langfuse when its keys are set. */
+  observer?: TurnObserver;
 }
 
 export interface ChatResponse {
@@ -34,7 +39,13 @@ export interface ChatResponse {
 }
 
 function defaultDeps(): ChatDeps {
-  return { db: getDb(), provider: getProvider(), now: () => new Date(), newId: randomUUID };
+  return {
+    db: getDb(),
+    provider: getProvider(),
+    now: () => new Date(),
+    newId: randomUUID,
+    observer: getTurnObserver(),
+  };
 }
 
 /**
@@ -76,15 +87,41 @@ async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise
 
   await ensureLead({ db: deps.db, leadId, now });
   const history = await loadConversation(deps.db, leadId);
-  const result = await runAgentTurn({
-    provider: deps.provider,
-    db: deps.db,
+  const turnInfo = {
     leadId,
-    history,
     userMessage: message,
-    now,
-    limits: deps.limits,
-  });
+    provider: deps.provider.name,
+    model: deps.provider.model,
+    promptVersion: CURRENT_PROMPT.version,
+  };
+  const { result, traceId } = await observeTurn(
+    deps.observer ?? NOOP_OBSERVER,
+    turnInfo,
+    async (trace) => {
+      const result = await runAgentTurn({
+        provider: deps.provider,
+        db: deps.db,
+        leadId,
+        history,
+        userMessage: message,
+        now,
+        limits: deps.limits,
+        trace,
+      });
+      trace.finish({
+        reply: result.reply,
+        outcome: result.outcome,
+        steps: result.steps,
+        usage: result.usage,
+        costUsd: result.costUsd,
+        latencyMs: result.latencyMs,
+        model: result.model,
+        guardEvents: result.guardEvents,
+        ...(result.error && { error: result.error }),
+      });
+      return { result, traceId: trace.traceId };
+    },
+  );
 
   await appendMessages(deps.db, leadId, result.newMessages, now, {
     provider: result.provider,
@@ -93,8 +130,11 @@ async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise
     inputTokens: result.usage.inputTokens,
     outputTokens: result.usage.outputTokens,
     cachedInputTokens: result.usage.cachedInputTokens,
+    cacheWriteInputTokens: result.usage.cacheWriteInputTokens,
+    costUsd: result.costUsd,
     latencyMs: result.latencyMs,
     outcome: result.outcome,
+    traceId,
   });
 
   const lead = await getLeadView(deps.db, leadId);

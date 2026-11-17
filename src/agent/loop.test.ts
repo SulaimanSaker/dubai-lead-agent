@@ -57,14 +57,24 @@ describe("runAgentTurn: normal turns", () => {
       promptVersion: "v1",
       provider: "local",
       model: "fake-model",
-      usage: { inputTokens: 100, outputTokens: 10, cachedInputTokens: 50 },
+      usage: {
+        inputTokens: 100,
+        outputTokens: 10,
+        cachedInputTokens: 50,
+        cacheWriteInputTokens: 0,
+      },
     });
-    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "assistant"]);
+    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "context", "assistant"]);
 
     const request = provider.requests[0];
-    expect(request?.system.stable).toBe(PROMPT_V1.stable);
-    expect(request?.system.dynamic).toContain("Current time in Dubai: Mon 16 Nov 2026, 14:05");
-    expect(request?.system.dynamic).toContain("Saved so far: nothing yet");
+    expect(request?.system).toBe(PROMPT_V1.stable);
+    // Time and lead state arrive as a context message right after the buyer's message.
+    const context = request?.messages[1];
+    expect(context).toMatchObject({ role: "context" });
+    expect(context && "text" in context && context.text).toContain(
+      "Current time in Dubai: Mon 16 Nov 2026, 14:05",
+    );
+    expect(context && "text" in context && context.text).toContain("Saved so far: nothing yet");
     expect(request?.tools.map((t) => t.name)).toContain("search_listings");
   });
 
@@ -99,6 +109,7 @@ describe("runAgentTurn: normal turns", () => {
     ]);
     expect(result.newMessages.map((m) => m.role)).toEqual([
       "user",
+      "context",
       "assistant",
       "tool",
       "tool",
@@ -108,12 +119,25 @@ describe("runAgentTurn: normal turns", () => {
     const lead = await db.query.leads.findFirst({ where: eq(leads.id, "lead-1") });
     expect(lead).toMatchObject({ budgetAed: 120000, financing: "cash", beds: 2 });
 
-    // The second call sees the tool results and the updated lead.
+    // The second call sees the tool results (the saved lead is in update_lead's result).
     const second = provider.requests[1];
     expect(second?.messages.at(-1)).toMatchObject({ role: "tool", name: "search_listings" });
     expect(second?.messages.at(-1)).toHaveProperty("result", expect.stringContaining("L02"));
-    expect(second?.system.dynamic).toContain("budgetAed=120000");
-    expect(second?.system.dynamic).toContain("Still unknown: timeline");
+    expect(second?.messages.at(-2)).toHaveProperty("result", expect.stringContaining("120000"));
+  });
+
+  it("never edits what was already sent: same system prompt, and each call extends the last one", async () => {
+    // Claude ties its thinking to the exact prefix it saw; a changed system prompt or edited history is a 400.
+    const { provider, run } = turn([
+      toolStep(["update_lead", { budgetAed: 120000 }]),
+      toolStep(["search_listings", { purpose: "rent" }]),
+      textStep("Here you go."),
+    ]);
+    await run();
+    const [first, second, third] = provider.requests;
+    expect(new Set(provider.requests.map((r) => r.system)).size).toBe(1);
+    expect(second?.messages.slice(0, first?.messages.length)).toEqual(first?.messages);
+    expect(third?.messages.slice(0, second?.messages.length)).toEqual(second?.messages);
   });
 
   it("continues an existing conversation", async () => {
@@ -130,6 +154,7 @@ describe("runAgentTurn: normal turns", () => {
       "user",
       "assistant",
       "user",
+      "context",
     ]);
   });
 });
@@ -147,7 +172,7 @@ describe("runAgentTurn: bad model output never crashes the turn", () => {
       [false, "invalid_input"],
       [true, undefined],
     ]);
-    const firstResult = result.newMessages[2];
+    const firstResult = result.newMessages[3];
     expect(firstResult).toMatchObject({ role: "tool", isError: true });
   });
 
@@ -249,7 +274,7 @@ describe("runAgentTurn: limits and provider problems end in a safe reply", () =>
     const { run } = turn([new LlmError("claude", "unavailable", "overloaded")]);
     const result = await run();
     expect(result).toMatchObject({ outcome: "provider_error", error: "overloaded" });
-    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "assistant"]);
+    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "context", "assistant"]);
   });
 
   it("logs a bug in our own code and ends with internal_error, keeping the messages so far", async () => {
@@ -264,6 +289,7 @@ describe("runAgentTurn: limits and provider problems end in a safe reply", () =>
     // The saved update_lead call and its result stay, followed by the safe reply.
     expect(result.newMessages.map((m) => m.role)).toEqual([
       "user",
+      "context",
       "assistant",
       "tool",
       "assistant",
@@ -305,11 +331,14 @@ describe("runAgentTurn: price guard", () => {
     expect(result.guardEvents).toEqual([
       { type: "invented_price", amounts: ["AED 99,000"], action: "retried" },
     ]);
-    expect(provider.requests[1]?.system.dynamic).toContain(
-      "Correction: your draft reply mentioned AED 99,000",
-    );
-    // The bad draft is never saved.
-    expect(JSON.stringify(result.newMessages)).not.toContain("99,000");
+    // The correction goes in as a context message (the system prompt never changes).
+    expect(provider.requests[1]?.messages.at(-1)).toMatchObject({
+      role: "context",
+      text: expect.stringContaining("Correction: your draft reply mentioned AED 99,000"),
+    });
+    // The bad draft itself is never saved: no assistant message has the made-up price.
+    const assistantText = result.newMessages.filter((m) => m.role === "assistant");
+    expect(JSON.stringify(assistantText)).not.toContain("99,000");
   });
 
   it("replaces the reply if the retry still has a made-up price", async () => {
@@ -321,7 +350,8 @@ describe("runAgentTurn: price guard", () => {
     expect(result.outcome).toBe("price_guard");
     expect(result.guardEvents.map((e) => e.action)).toEqual(["retried", "replaced"]);
     expect(result.reply).toMatch(/double-check the exact price/);
-    expect(JSON.stringify(result.newMessages)).not.toMatch(/9[89],000/);
+    const assistantText = result.newMessages.filter((m) => m.role === "assistant");
+    expect(JSON.stringify(assistantText)).not.toMatch(/9[89],000/);
   });
 
   it("lets the buyer's budget through once update_lead has saved it", async () => {
@@ -352,7 +382,7 @@ describe("runAgentTurn: edge cases from review", () => {
     const { run } = turn([{ stop: "tool_use", toolCalls: [], text: "Which area do you prefer?" }]);
     const result = await run();
     expect(result).toMatchObject({ outcome: "replied", reply: "Which area do you prefer?" });
-    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "assistant"]);
+    expect(result.newMessages.map((m) => m.role)).toEqual(["user", "context", "assistant"]);
 
     const empty = await turn([{ stop: "tool_use", toolCalls: [], text: "" }]).run();
     expect(empty.outcome).toBe("provider_error");
