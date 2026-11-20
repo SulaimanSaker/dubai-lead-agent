@@ -13,6 +13,8 @@ export interface TurnInfo {
   /** The model requested (a fallback can answer with another one; see ModelCallEnd). */
   model: string;
   promptVersion: string;
+  /** Extra trace tags, e.g. ["eval", "run-2026-11-17T12-00"] for eval runs. */
+  tags?: string[];
 }
 
 export interface TurnSummary {

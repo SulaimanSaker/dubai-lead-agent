@@ -144,7 +144,27 @@ const eslintConfig = defineConfig([
     },
   },
 
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "coverage/**"]),
+  // evals: run the agent like the app does, plus tools and db for setup and checks; never the UI.
+  {
+    files: ["evals/**/*.ts"],
+    rules: {
+      "no-restricted-imports": restrict(
+        ...PROVIDER_SDKS,
+        ...TRACING_SDKS,
+        layer(["app"], "evals/ test the agent, not the UI: they must not import from app/."),
+      ),
+    },
+  },
+
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "coverage/**",
+    "evals/report/build-report-lite.mjs", // vendored from Anthropic's claude-api skill
+    "evals/runs/**",
+  ]),
 ]);
 
 export default eslintConfig;

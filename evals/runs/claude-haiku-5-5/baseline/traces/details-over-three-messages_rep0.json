@@ -1,0 +1,82 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Requirements arrive over three messages: earlier fields are kept, the lead ends fully qualified"
+  },
+  {
+    "role": "user",
+    "content": "Hi, I'm looking for a place to rent."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi, welcome! I'd be happy to help you find a rental. Which area or community are you interested in, and how many bedrooms do you need?"
+  },
+  {
+    "role": "user",
+    "content": "2 bedrooms, ideally in JLT."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"JLT\"\n  ],\n  \"beds\": 2\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"JLT\",\n  \"beds\": 2,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"JLT\"],\"beds\":2,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one 2-bedroom rental in JLT: a 2BR apartment near the metro, at AED 110,000 per year. What budget do you have in mind for the yearly rent, and when would you like to move in?"
+  },
+  {
+    "role": "user",
+    "content": "Budget is 110k a year. I'll pay cash and I need to move in as soon as possible."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=JLT; beds=2.\nStill unknown: budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"budgetAed\": 110000,\n  \"timeline\": \"asap\",\n  \"financing\": \"cash\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_available_slots",
+    "content": "{\n  \"days\": 3\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"JLT\"],\"beds\":2,\"budgetAed\":110000,\"timeline\":\"asap\",\"financing\":\"cash\",\"status\":\"qualified\"},\"missing\":[],\"message\":\"Lead is fully qualified.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_available_slots",
+    "content": "{\"ok\":true,\"timezone\":\"Asia/Dubai (UTC+4)\",\"checked\":{\"from\":\"2026-11-16\",\"to\":\"2026-11-18\"},\"slots\":[{\"startsAt\":\"2026-11-16T16:00:00+04:00\",\"label\":\"Mon 16 Nov 2026, 16:00\"},{\"startsAt\":\"2026-11-16T17:00:00+04:00\",\"label\":\"Mon 16 Nov 2026, 17:00\"},{\"startsAt\":\"2026-11-17T10:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 10:00\"},{\"startsAt\":\"2026-11-17T11:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 11:00\"},{\"startsAt\":\"2026-11-17T12:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 12:00\"},{\"startsAt\":\"2026-11-17T13:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 13:00\"},{\"startsAt\":\"2026-11-17T14:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 14:00\"},{\"startsAt\":\"2026-11-17T15:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 15:00\"},{\"startsAt\":\"2026-11-17T16:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 16:00\"},{\"startsAt\":\"2026-11-17T17:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 17:00\"},{\"startsAt\":\"2026-11-18T10:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 10:00\"},{\"startsAt\":\"2026-11-18T11:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 11:00\"},{\"startsAt\":\"2026-11-18T12:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 12:00\"},{\"startsAt\":\"2026-11-18T13:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 13:00\"},{\"startsAt\":\"2026-11-18T14:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 14:00\"},{\"startsAt\":\"2026-11-18T15:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 15:00\"},{\"startsAt\":\"2026-11-18T16:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 16:00\"},{\"startsAt\":\"2026-11-18T17:00:00+04:00\",\"label\":\"Wed 18 Nov 2026, 17:00\"}],\"truncated\":false,\"message\":\"18 free slot(s). Offer the buyer 2–3 of them.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks, that matches the listing. The 2BR near the metro in JLT (AED 110,000 per year) fits your budget. I can book a viewing for you. Would any of these work?\n- Mon 16 Nov 2026, 16:00\n- Tue 17 Nov 2026, 10:00\n- Wed 18 Nov 2026, 14:00"
+  }
+]

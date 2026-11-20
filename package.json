@@ -16,7 +16,13 @@
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/db/seed.ts",
     "llm:record": "tsx --env-file-if-exists=.env.local scripts/record-llm-fixtures.ts && prettier --write --log-level warn src/agent/llm/fixtures",
-    "agent:try": "tsx --env-file-if-exists=.env.local scripts/try-agent.ts"
+    "agent:try": "tsx --env-file-if-exists=.env.local scripts/try-agent.ts",
+    "evals:cases": "tsx evals/cases-to-markdown.ts && prettier --write --log-level warn evals/CASES.md",
+    "evals": "tsx --env-file-if-exists=.env.local evals/run.ts",
+    "evals:report": "node evals/report/build-report-lite.mjs",
+    "evals:compare": "tsx evals/compare.ts",
+    "evals:calibrate": "tsx evals/calibrate.ts",
+    "evals:rejudge": "tsx --env-file-if-exists=.env.local evals/rejudge.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

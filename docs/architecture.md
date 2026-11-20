@@ -19,7 +19,7 @@ src/agent    prompts, tool loop, guards, chat    ──►  may import: tools, a
 src/agent/llm  model provider adapters           ──►  may import: provider SDKs only
 src/tools    one file per tool (Zod + impl)      ──►  may import: db
 src/db       schema + seed                       ──►  imports no other layer
-evals/       golden cases, checks, runner        ──►  may import: agent, tools
+evals/       golden cases, checks, runner        ──►  may import: agent, tools, db (never app)
 ```
 
 **Rule:** imports only point right. The UI never touches the database; tools never call the model.
@@ -106,6 +106,8 @@ providerData }`, plus `LlmError` (`rate_limit | timeout | unavailable | bad_requ
 - `local.ts` — Gemma 3 4B in LM Studio via its OpenAI-compatible API (free development + comparison)
 - `config.ts` — Zod-validated env (`LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `LMSTUDIO_*`)
 - `index.ts` — `getProvider()` picks one from `LLM_PROVIDER=claude|local`
+- `structured.ts` — `claudeStructured()`: one Claude call that must answer JSON matching a schema. Claude-only,
+  not part of `LlmProvider`; used by the eval judge ([ADR 0007](decisions/0007-evals-and-judge.md))
 
 Tools are defined once (Zod). `src/agent/tool-defs.ts` turns them into JSON Schema; each adapter translates that
 to its provider's tool format. See [ADR 0002](decisions/0002-model-layer.md).
@@ -175,7 +177,9 @@ field has a description (the model only sees names and descriptions).
     `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`.
   - Cost is computed in code (`src/agent/llm/pricing.ts`, dated price table) and is the same in Langfuse, the
     saved turn meta and the agent view. Each turn also stores its trace id.
-- **Evals:** golden conversations in `evals/cases/`, code checks + an LLM judge, run per provider and compared. See `evals/CLAUDE.md`.
+- **Evals** ([ADR 0007](decisions/0007-evals-and-judge.md)): 31 golden conversations in `evals/cases/`, run through
+  the real `handleBuyerMessage` in a fresh database. Code checks on the end state + a Claude Sonnet 5.5 judge;
+  headline `pass` needs both. Run per model and compared (`evals/runs/COMPARISON.md`). See `evals/CLAUDE.md`.
 
 ## Out of scope (on purpose)
 

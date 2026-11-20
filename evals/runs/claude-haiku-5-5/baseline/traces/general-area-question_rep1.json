@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: A general question about an area is answered, not handed off"
+  },
+  {
+    "role": "user",
+    "content": "What's Dubai Hills like for families? We might buy there next year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"areas\": [\n    \"Dubai Hills\"\n  ]\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Hills\",\n  \"purpose\": \"sale\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":[\"Dubai Hills\"],\"beds\":null,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"beds\",\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: beds, budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":2,\"listings\":[{\"id\":\"L25\",\"title\":\"Off-plan 3BR townhouse, Dubai Hills\",\"area\":\"Dubai Hills Estate\",\"propertyType\":\"townhouse\",\"beds\":3,\"purpose\":\"sale\",\"priceAed\":3400000,\"status\":\"off_plan\"},{\"id\":\"L23\",\"title\":\"4BR villa on the golf course, Dubai Hills\",\"area\":\"Dubai Hills Estate\",\"propertyType\":\"villa\",\"beds\":4,\"purpose\":\"sale\",\"priceAed\":6900000,\"status\":\"ready\"}],\"message\":\"2 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I can't give a full neighbourhood guide, but I can show you what we have in Dubai Hills Estate right now:\n\n- **L25**: Off-plan 3-bedroom townhouse, AED 3,400,000\n- **L23**: Ready 4-bedroom villa on the golf course, AED 6,900,000\n\nHow many bedrooms does your family need, and what budget are you working with? I can also check details on either property for you."
+  }
+]

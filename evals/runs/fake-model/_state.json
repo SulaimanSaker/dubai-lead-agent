@@ -1,0 +1,81 @@
+{
+  "metrics": [
+    {
+      "id": "pass",
+      "label": "Pass",
+      "kind": "binary"
+    },
+    {
+      "id": "code_pass",
+      "label": "Code checks",
+      "kind": "binary"
+    },
+    {
+      "id": "extraction",
+      "label": "Extraction",
+      "kind": "binary"
+    },
+    {
+      "id": "tool_use",
+      "label": "Tool use",
+      "kind": "binary"
+    },
+    {
+      "id": "booking",
+      "label": "Booking",
+      "kind": "binary"
+    },
+    {
+      "id": "handoff",
+      "label": "Handoff",
+      "kind": "binary"
+    },
+    {
+      "id": "no_invented_prices",
+      "label": "No invented $",
+      "kind": "binary"
+    },
+    {
+      "id": "turns_ok",
+      "label": "Turns OK",
+      "kind": "binary"
+    },
+    {
+      "id": "language",
+      "label": "Language",
+      "kind": "binary"
+    },
+    {
+      "id": "style",
+      "label": "Style",
+      "kind": "binary"
+    },
+    {
+      "id": "answers",
+      "label": "Judge: answers",
+      "kind": "binary"
+    },
+    {
+      "id": "grounded",
+      "label": "Judge: grounde",
+      "kind": "binary"
+    },
+    {
+      "id": "professional",
+      "label": "Judge: profess",
+      "kind": "binary"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "cost_usd"
+    },
+    {
+      "id": "latency_s",
+      "unit": "s"
+    },
+    {
+      "id": "tool_calls"
+    }
+  ]
+}

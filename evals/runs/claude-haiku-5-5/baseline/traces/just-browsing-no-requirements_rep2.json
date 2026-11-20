@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: A browsing buyer gives no requirements: no beds, budget, area or financing invented"
+  },
+  {
+    "role": "user",
+    "content": "Just browsing for now. Which areas do you cover?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"timeline\": \"browsing\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":null,\"timeline\":\"browsing\",\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"budgetAed\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, budgetAed, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":30,\"listings\":[{\"id\":\"L07\",\"title\":\"Furnished studio with pool access, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":45000,\"status\":\"ready\"},{\"id\":\"L26\",\"title\":\"Studio with lake view, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":48000,\"status\":\"ready\"},{\"id\":\"L15\",\"title\":\"Furnished studio with canal view, Business Bay\",\"area\":\"Business Bay\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":58000,\"status\":\"ready\"},{\"id\":\"L05\",\"title\":\"Studio near Marina Walk\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":62000,\"status\":\"ready\"},{\"id\":\"L08\",\"title\":\"1BR with balcony, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":65000,\"status\":\"ready\"}],\"message\":\"Showing the 5 cheapest of 30 matches.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "We have listings across Dubai, including Jumeirah Village Circle (JVC), Jumeirah Lake Towers (JLT), Business Bay, and Dubai Marina, and more beyond those. Are you looking to rent or buy? And do you have a preferred area and number of bedrooms in mind?"
+  }
+]

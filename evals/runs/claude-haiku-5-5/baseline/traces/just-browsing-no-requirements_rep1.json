@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: A browsing buyer gives no requirements: no beds, budget, area or financing invented"
+  },
+  {
+    "role": "user",
+    "content": "Just browsing for now. Which areas do you cover?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"timeline\": \"browsing\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":null,\"timeline\":\"browsing\",\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"budgetAed\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, budgetAed, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":14,\"listings\":[{\"id\":\"L05\",\"title\":\"Studio near Marina Walk\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":62000,\"status\":\"ready\"},{\"id\":\"L24\",\"title\":\"1BR with park view, Dubai Hills\",\"area\":\"Dubai Hills Estate\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":90000,\"status\":\"ready\"},{\"id\":\"L01\",\"title\":\"Furnished 1BR with marina view, Marina Heights\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":95000,\"status\":\"ready\"},{\"id\":\"L02\",\"title\":\"Spacious 2BR in Al Sahab Tower\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":115000,\"status\":\"ready\"},{\"id\":\"L11\",\"title\":\"1BR with Burj Khalifa view, Downtown\",\"area\":\"Downtown Dubai\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":120000,\"status\":\"ready\"}],\"message\":\"Showing the 5 cheapest of 14 matches.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "We have homes across Dubai. Current listings include Dubai Marina, Dubai Hills Estate and Downtown Dubai, and I can check other areas too. Are you looking to rent or buy, and which area interests you most?"
+  }
+]

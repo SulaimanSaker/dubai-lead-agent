@@ -1,0 +1,195 @@
+{
+  "category": "qualification",
+  "cases": [
+    {
+      "id": "cash-buyer-marina-2bed",
+      "description": "Buyer gives area, beds, budget and cash in one message: save all of it and search",
+      "tags": ["qualification", "en"],
+      "source": "real: Gemma probe 2026-11-15 searched but never saved budget or cash",
+      "messages": [
+        "Hi, I'm looking for a 2 bed in Dubai Marina, budget around 120k a year, paying cash."
+      ],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Dubai Marina"],
+          "beds": 2,
+          "budgetAed": 120000,
+          "financing": "cash"
+        },
+        "leadUnknown": ["timeline"],
+        "toolCalls": [
+          { "name": "update_lead" },
+          { "name": "search_listings", "args": { "beds": 2, "maxPriceAed": 120000 } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "mortgage-villa-purchase-dubai-hills",
+      "description": "Buyer wants to buy with a mortgage and gives a timeline: all six fields saved",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": [
+        "We want to buy a 4 bedroom villa in Dubai Hills, budget up to 7 million, with a mortgage. Hoping to move in 3 to 6 months."
+      ],
+      "expect": {
+        "lead": {
+          "purpose": "sale",
+          "areas": ["Dubai Hills Estate"],
+          "beds": 4,
+          "budgetAed": 7000000,
+          "timeline": "3_6_months",
+          "financing": "mortgage"
+        },
+        "toolCalls": [
+          { "name": "update_lead" },
+          { "name": "search_listings", "args": { "purpose": "sale", "beds": 4 } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "vague-budget-around-1-5m-no-area",
+      "description": "Buyer gives a rounded budget in millions and no area: save what was said, invent nothing",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": [
+        "Looking to buy a 2 bedroom apartment, budget around 1.5M. Not sure about the area yet."
+      ],
+      "expect": {
+        "lead": { "purpose": "sale", "beds": 2, "budgetAed": 1500000 },
+        "leadUnknown": ["areas", "timeline", "financing"],
+        "toolCalls": [{ "name": "update_lead" }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "studio-jvc-rent-short-message",
+      "description": "Short message with an area abbreviation (JVC) and a studio: beds 0, alias understood",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": ["Any studios in JVC for rent? Max 50k."],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Jumeirah Village Circle"],
+          "beds": 0,
+          "budgetAed": 50000
+        },
+        "toolCalls": [{ "name": "search_listings", "args": { "beds": 0, "maxPriceAed": 50000 } }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "two-areas-one-bed-rent",
+      "description": "Buyer names two areas: both saved",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": ["I need a 1 bed to rent in Business Bay or Downtown, up to 100k per year."],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Business Bay", "Downtown Dubai"],
+          "beds": 1,
+          "budgetAed": 100000
+        },
+        "toolCalls": [
+          { "name": "update_lead" },
+          { "name": "search_listings", "args": { "beds": 1 } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "details-over-three-messages",
+      "description": "Requirements arrive over three messages: earlier fields are kept, the lead ends fully qualified",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": [
+        "Hi, I'm looking for a place to rent.",
+        "2 bedrooms, ideally in JLT.",
+        "Budget is 110k a year. I'll pay cash and I need to move in as soon as possible."
+      ],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Jumeirah Lake Towers"],
+          "beds": 2,
+          "budgetAed": 110000,
+          "timeline": "asap",
+          "financing": "cash"
+        },
+        "toolCalls": [{ "name": "update_lead" }, { "name": "search_listings" }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "typos-and-informal",
+      "description": "Typos and informal writing: the facts are still understood and saved",
+      "tags": ["qualification", "en"],
+      "source": "synthetic",
+      "messages": ["hii lookng for 3bed townhous in arabian ranches to rent, budjet 250k, cash"],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Arabian Ranches"],
+          "beds": 3,
+          "budgetAed": 250000,
+          "financing": "cash"
+        },
+        "toolCalls": [
+          { "name": "update_lead" },
+          { "name": "search_listings", "args": { "beds": 3 } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "arabic-buyer-marina",
+      "description": "Arabic message: facts saved (area in Latin script for search), reply in Arabic",
+      "tags": ["qualification", "ar"],
+      "source": "synthetic",
+      "messages": [
+        "مرحبا، أبحث عن شقة بغرفتين للإيجار في دبي مارينا، الميزانية 120 ألف درهم سنوياً"
+      ],
+      "expect": {
+        "lead": {
+          "purpose": "rent",
+          "areas": ["Dubai Marina"],
+          "beds": 2,
+          "budgetAed": 120000
+        },
+        "toolCalls": [
+          { "name": "update_lead" },
+          { "name": "search_listings", "args": { "beds": 2 } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "ar"
+      }
+    }
+  ]
+}

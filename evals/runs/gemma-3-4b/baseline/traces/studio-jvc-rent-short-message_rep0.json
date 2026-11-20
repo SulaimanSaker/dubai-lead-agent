@@ -1,0 +1,60 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Short message with an area abbreviation (JVC) and a studio: beds 0, alias understood"
+  },
+  {
+    "role": "user",
+    "content": "Any studios in JVC for rent? Max 50k."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"area\": \"JVC\",\n  \"beds\": 0,\n  \"maxPriceAed\": 50000\n}"
+  },
+  {
+    "role": "assistant_note",
+    "content": "Hi there! Looking for studios in JVC? "
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L07\",\"title\":\"Furnished studio with pool access, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":45000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L07\"\n}"
+  },
+  {
+    "role": "assistant_note",
+    "content": "Great! This studio has a price of 45,000 AED per year and is ready to move in. Would you like to know more about it? "
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L07\",\"title\":\"Furnished studio with pool access, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":0,\"baths\":1,\"sizeSqft\":420,\"purpose\":\"rent\",\"priceAed\":45000,\"status\":\"ready\",\"handoverDate\":null,\"furnished\":true,\"features\":[\"pool\",\"gym\"],\"description\":\"Affordable furnished studio in a quiet building.\"}}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_available_slots",
+    "content": "{\n  \"fromDate\": \"2026-11-17T10:00:00+04:00\",\n  \"days\": 3\n}"
+  },
+  {
+    "role": "assistant_note",
+    "content": "Fantastic! It’s a 420 sqft, fully furnished studio with access to a pool and gym. The price is 45,000 AED per year. Would you like to book a viewing or would you like me to search for other options? "
+  },
+  {
+    "role": "tool_result",
+    "name": "get_available_slots",
+    "content": "{\"ok\":false,\"error\":\"invalid_input\",\"message\":\"Invalid input for get_available_slots:\\n✖ Invalid ISO date\\n  → at fromDate\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh dear, there was a problem with the date. Could you please provide me with a valid date for the viewing? For example, ‘tomorrow’ or ‘next Monday’? [HANDOFF_TO_HUMAN]"
+  }
+]

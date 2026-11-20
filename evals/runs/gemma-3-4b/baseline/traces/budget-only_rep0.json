@@ -1,0 +1,18 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Only a budget is given: it is saved, and nothing else is guessed"
+  },
+  {
+    "role": "user",
+    "content": "My budget is 90k a year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi there! 👋 Looking for a place in Dubai? To help me narrow down the perfect property for you, could you tell me what you’re looking for – are you renting or buying, and which areas you'd like to live in? Also, how many bedrooms do you need and what’s your budget?"
+  }
+]

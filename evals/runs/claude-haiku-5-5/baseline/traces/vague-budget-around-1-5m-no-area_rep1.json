@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Buyer gives a rounded budget in millions and no area: save what was said, invent nothing"
+  },
+  {
+    "role": "user",
+    "content": "Looking to buy a 2 bedroom apartment, budget around 1.5M. Not sure about the area yet."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"beds\": 2,\n  \"budgetAed\": 1500000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"beds\": 2,\n  \"maxPriceAed\": 1500000,\n  \"propertyType\": \"apartment\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":null,\"beds\":2,\"budgetAed\":1500000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"areas\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: areas, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L09\",\"title\":\"2BR near the community park, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"sale\",\"priceAed\":1150000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one 2-bedroom apartment in your budget: a ready unit near the community park in Jumeirah Village Circle (JVC), priced at AED 1,150,000.\n\nWould you like more details on it? Also, do you have a preferred area, and are you planning to pay cash or take a mortgage?"
+  }
+]

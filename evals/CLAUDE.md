@@ -9,11 +9,18 @@ If you believe a case itself is wrong, stop and explain why to the human. A hook
 
 ## Adding a case
 
-Use the `add-eval-case` skill. Each case is a JSON file in `evals/cases/` with the buyer messages and the expected outcome
-(lead fields, tool calls, handoff yes/no). One behaviour per case, named after it (e.g. `cash-buyer-marina-2bed.json`).
+Use the `add-eval-case` skill. Cases live in one JSON file per category in `evals/cases/` (validated by
+`evals/lib/cases.ts`), each with the buyer messages and the expected end state (lead fields, tool calls, booking and
+handoff yes/no, language). One behaviour per case, named after it (e.g. `cash-buyer-marina-2bed`). Every case states
+both `viewingBooked` and `handoff`, so doing nothing can't pass.
 
 ## Checks
 
-- Code checks (cheap, exact) come first: extraction, tool use, no invented prices, handoff.
-- LLM-as-judge (Claude Haiku 5.5) only for soft qualities like tone and language.
+- Code checks (cheap, exact) come first: extraction, tool use, booking, handoff, no invented prices, turns, language, style.
+- LLM-as-judge (Claude Sonnet 5.5, not the agent's own model) for `answers`, `grounded`, `professional`. It sees the
+  replies the buyer saw plus what the agent was told (prompt, tool descriptions, turn context).
+- Headline `pass` = all code checks AND judge `answers` + `grounded`; `code_pass` is the code-only result.
+- Changing the judge? Bump `JUDGE_VERSION`, re-grade with `npm run evals:rejudge` (no agent re-run), then re-score
+  calibration with `npm run evals:calibrate -- score <model>`.
+- Run the null agent (`--provider null`) after any grading change: it must stay near 0%.
 - Report real numbers only. Never estimate or invent a score.

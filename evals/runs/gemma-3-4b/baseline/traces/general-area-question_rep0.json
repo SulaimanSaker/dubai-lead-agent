@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: A general question about an area is answered, not handed off"
+  },
+  {
+    "role": "user",
+    "content": "What's Dubai Hills like for families? We might buy there next year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"area\": [\n    \"Dubai Hills\"\n  ]\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":false,\"error\":\"invalid_input\",\"message\":\"Invalid input for search_listings:\\n✖ Invalid input: expected string, received array\\n  → at area\\n✖ Too small: expected array to have >=2 items\\n  → at area\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, let’s refine your search. Could you please tell me which areas within Dubai Hills you're interested in? For example, are you looking for properties near the golf course or closer to the main boulevard? [END_TOOL_REQUEST]"
+  }
+]

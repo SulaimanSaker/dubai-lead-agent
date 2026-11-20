@@ -1,0 +1,18 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: A viewing request without any property: the agent asks what they're looking for instead of booking"
+  },
+  {
+    "role": "user",
+    "content": "Can I book a viewing for tomorrow at 3pm?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi there! 👋 To help me find the perfect property for you, could you tell me what you’re looking for? Are you interested in renting or buying, and where are you hoping to live in Dubai? 😊"
+  }
+]

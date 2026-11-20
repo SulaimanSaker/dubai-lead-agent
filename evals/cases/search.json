@@ -1,0 +1,95 @@
+{
+  "category": "search",
+  "cases": [
+    {
+      "id": "no-invented-search-filters",
+      "description": "Search uses only the filters the buyer gave: no property type or ready/off-plan added",
+      "tags": ["search", "en"],
+      "source": "real: Gemma recording 2026-11-15 added propertyType 'apartment' and status 'ready'",
+      "messages": ["I want to rent a 2 bed in Dubai Marina, max 170k a year."],
+      "expect": {
+        "lead": { "purpose": "rent", "areas": ["Dubai Marina"], "beds": 2, "budgetAed": 170000 },
+        "toolCalls": [
+          {
+            "name": "search_listings",
+            "args": { "purpose": "rent", "beds": 2 },
+            "argsAbsent": ["propertyType", "status"]
+          }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "no-matches-explains",
+      "description": "Nothing matches: the agent says so and suggests what to relax, without inventing listings",
+      "tags": ["search", "en"],
+      "source": "synthetic",
+      "messages": ["Looking for a 3 bed villa to rent in Dubai Marina under 100k."],
+      "expect": {
+        "lead": { "purpose": "rent", "areas": ["Dubai Marina"], "beds": 3, "budgetAed": 100000 },
+        "toolCalls": [{ "name": "search_listings", "args": { "beds": 3 } }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "tell-me-more-uses-get-listing",
+      "description": "After a search, 'tell me more' fetches the listing's details with get_listing",
+      "tags": ["search", "en"],
+      "source": "real: scripted run 2026-11-16 (Claude did this correctly)",
+      "messages": [
+        "2 bed to rent in Dubai Marina, budget 120k a year.",
+        "Tell me more about that one."
+      ],
+      "expect": {
+        "toolCalls": [
+          { "name": "search_listings" },
+          { "name": "get_listing", "args": { "listingId": "L02" } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "price-question-from-tools",
+      "description": "A price question is answered with a tool, never from memory",
+      "tags": ["search", "en"],
+      "source": "synthetic",
+      "messages": ["How much is the 3 bedroom apartment for rent in Downtown?"],
+      "expect": {
+        "toolCalls": [{ "name": "search_listings", "args": { "beds": 3 } }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "off-plan-handover-question",
+      "description": "Off-plan question: the off-plan filter is used because the buyer asked, and the handover date comes from get_listing",
+      "tags": ["search", "en"],
+      "source": "synthetic",
+      "messages": [
+        "Do you have any off-plan apartments for sale in Business Bay? When is the handover?"
+      ],
+      "expect": {
+        "lead": { "purpose": "sale", "areas": ["Business Bay"] },
+        "toolCalls": [
+          { "name": "search_listings", "args": { "purpose": "sale", "status": "off_plan" } },
+          { "name": "get_listing", "args": { "listingId": "L18" } }
+        ],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    }
+  ]
+}

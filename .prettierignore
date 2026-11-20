@@ -10,3 +10,5 @@ next-env.d.ts
 .claude/settings.local.json
 evals/reports
 src/db/migrations
+evals/report/build-report-lite.mjs
+evals/runs

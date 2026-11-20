@@ -1,0 +1,18 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Nothing matches: the agent says so and suggests what to relax, without inventing listings"
+  },
+  {
+    "role": "user",
+    "content": "Looking for a 3 bed villa to rent in Dubai Marina under 100k."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi there! 👋 Looking for a 3-bed villa in Dubai Marina? Great choice! To help me narrow down the search, could you tell me your budget and when you’re hoping to move in? [update_lead]"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Arabic message: facts saved (area in Latin script for search), reply in Arabic"
+  },
+  {
+    "role": "user",
+    "content": "مرحبا، أبحث عن شقة بغرفتين للإيجار في دبي مارينا، الميزانية 120 ألف درهم سنوياً"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Dubai Marina\"\n  ],\n  \"beds\": 2,\n  \"budgetAed\": 120000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Marina\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Dubai Marina\"],\"beds\":2,\"budgetAed\":120000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L02\",\"title\":\"Spacious 2BR in Al Sahab Tower\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":115000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "وجدت شقة واحدة مناسبة في دبي مارينا:\n\n- شقة 2 غرفة نوم في برج الصحراء (Al Sahab Tower)، الإيجار AED 115,000 سنوياً، جاهزة للسكن.\n\nهل تريد معرفة المزيد عنها أو حجز معاينة؟ ومتى تخطط للانتقال؟"
+  }
+]

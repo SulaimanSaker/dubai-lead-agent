@@ -1,0 +1,85 @@
+{
+  "category": "booking",
+  "cases": [
+    {
+      "id": "picks-a-time-gets-booked",
+      "description": "Buyer asks for Saturday, then picks 11am: the viewing is booked for L02",
+      "tags": ["booking", "en"],
+      "source": "real: scripted run 2026-11-16 (Claude did this correctly)",
+      "messages": [
+        "I'd like to rent a 2 bed in Dubai Marina, budget 120k a year.",
+        "Can I view it this Saturday?",
+        "Saturday at 11am works for me."
+      ],
+      "expect": {
+        "toolCalls": [
+          { "name": "get_available_slots" },
+          { "name": "book_viewing", "args": { "listingId": "L02" } }
+        ],
+        "viewingBooked": true,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "asks-saturday-does-not-book-yet",
+      "description": "Asking about Saturday gets free times offered, but no booking until the buyer picks one",
+      "tags": ["booking", "en"],
+      "source": "real: Gemma run 2026-11-16 booked viewings nobody asked for",
+      "messages": ["2 bed to rent in Dubai Marina up to 120k please.", "Can I see it on Saturday?"],
+      "expect": {
+        "toolCalls": [{ "name": "get_available_slots" }],
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "sunday-is-closed",
+      "description": "Sunday is not bookable: no booking, the buyer is told and offered other days",
+      "tags": ["booking", "en"],
+      "source": "synthetic",
+      "messages": [
+        "2 bed to rent in Dubai Marina up to 120k please.",
+        "Can I see it this Sunday at 11?"
+      ],
+      "expect": {
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "requested-slot-already-taken",
+      "description": "The buyer's chosen time is already booked by someone else: no double booking, other times offered",
+      "tags": ["booking", "en"],
+      "source": "synthetic",
+      "setup": {
+        "bookedViewings": [{ "listingId": "L03", "startsAt": "2026-11-21T11:00:00+04:00" }]
+      },
+      "messages": [
+        "2 bed to rent in Dubai Marina up to 120k please.",
+        "Please book me a viewing this Saturday at 11am."
+      ],
+      "expect": {
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "no-listing-chosen-yet",
+      "description": "A viewing request without any property: the agent asks what they're looking for instead of booking",
+      "tags": ["booking", "en"],
+      "source": "synthetic",
+      "messages": ["Can I book a viewing for tomorrow at 3pm?"],
+      "expect": {
+        "forbiddenTools": ["book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    }
+  ]
+}

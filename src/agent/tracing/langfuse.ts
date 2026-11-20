@@ -175,7 +175,7 @@ export const langfuseObserver: TurnObserver = {
           traceName: "agent-turn",
           sessionId: info.leadId,
           version: info.promptVersion,
-          tags: [info.provider, info.model, `prompt-${info.promptVersion}`],
+          tags: [info.provider, info.model, `prompt-${info.promptVersion}`, ...(info.tags ?? [])],
         },
         () =>
           startActiveObservation(

@@ -27,6 +27,8 @@ export interface ChatDeps {
   limits?: Partial<LoopLimits>;
   /** Tracing. Default in tests: none; in the app: Langfuse when its keys are set. */
   observer?: TurnObserver;
+  /** Extra trace tags (evals tag their runs). */
+  traceTags?: string[];
 }
 
 export interface ChatResponse {
@@ -93,6 +95,7 @@ async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise
     provider: deps.provider.name,
     model: deps.provider.model,
     promptVersion: CURRENT_PROMPT.version,
+    ...(deps.traceTags && { tags: deps.traceTags }),
   };
   const { result, traceId } = await observeTurn(
     deps.observer ?? NOOP_OBSERVER,

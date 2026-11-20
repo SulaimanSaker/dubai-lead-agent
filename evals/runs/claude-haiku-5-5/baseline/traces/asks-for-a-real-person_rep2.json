@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: The buyer asks for a person: handed off with reason asked_for_human"
+  },
+  {
+    "role": "user",
+    "content": "I want to speak to a real person, not a bot."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "handoff_to_human",
+    "content": "{\n  \"reason\": \"asked_for_human\",\n  \"summary\": \"The buyer asked to speak to a real person instead of the assistant. No property requirements (purpose, areas, bedrooms, budget) have been shared yet.\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "handoff_to_human",
+    "content": "{\"ok\":true,\"alreadyHandedOff\":false,\"message\":\"Handed off. Tell the buyer a human agent will contact them shortly.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "A human agent will contact you shortly. Thank you for your patience."
+  }
+]

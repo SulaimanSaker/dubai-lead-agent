@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Nothing matches: the agent says so and suggests what to relax, without inventing listings"
+  },
+  {
+    "role": "user",
+    "content": "Looking for a 3 bed villa to rent in Dubai Marina under 100k."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Dubai Marina\"\n  ],\n  \"beds\": 3,\n  \"budgetAed\": 100000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Marina\",\n  \"beds\": 3,\n  \"maxPriceAed\": 100000,\n  \"purpose\": \"rent\",\n  \"propertyType\": \"villa\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Dubai Marina\"],\"beds\":3,\"budgetAed\":100000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":0,\"listings\":[],\"message\":\"No listings match these filters. Ask the buyer which filter (area, bedrooms, type) they can be flexible on.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm sorry, I couldn't find any 3-bedroom villas to rent in Dubai Marina under AED 100,000 right now. Would you be open to a townhouse or apartment instead, or a slightly higher budget? Also, when are you hoping to move?"
+  }
+]

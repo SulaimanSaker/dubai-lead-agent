@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Arabic request for a human agent: handed off, reply in Arabic"
+  },
+  {
+    "role": "user",
+    "content": "أريد التحدث مع وكيل عقاري حقيقي من فضلك"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "handoff_to_human",
+    "content": "{\n  \"reason\": \"asked_for_human\",\n  \"summary\": \"The buyer asked to speak with a real estate agent instead of the assistant. No property requirements have been collected yet (purpose, area, bedrooms, budget unknown).\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "handoff_to_human",
+    "content": "{\"ok\":true,\"alreadyHandedOff\":false,\"message\":\"Handed off. Tell the buyer a human agent will contact them shortly.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "بالتأكيد، لقد أبلغت أحد الوكلاء العقاريين بطلبك، وسيتواصل معك أحد أعضاء فريقنا قريباً. شكراً لصبرك."
+  }
+]

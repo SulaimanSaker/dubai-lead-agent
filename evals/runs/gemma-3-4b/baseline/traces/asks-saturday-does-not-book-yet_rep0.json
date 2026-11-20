@@ -1,0 +1,44 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Asking about Saturday gets free times offered, but no booking until the buyer picks one"
+  },
+  {
+    "role": "user",
+    "content": "2 bed to rent in Dubai Marina up to 120k please."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "context",
+    "content": "Correction: your draft reply mentioned AED 120k, which no tool returned. Rewrite the reply using only prices exactly as the tools returned them (yearly for rent), or call a tool to get the price."
+  },
+  {
+    "role": "assistant",
+    "content": "Let me double-check the exact price for you. Which property would you like the details of?"
+  },
+  {
+    "role": "user",
+    "content": "Can I see it on Saturday?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "get_available_slots",
+    "content": "{\n  \"fromDate\": \"2026-11-17T10:00:00+04:00\",\n  \"days\": 3\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_available_slots",
+    "content": "{\"ok\":false,\"error\":\"invalid_input\",\"message\":\"Invalid input for get_available_slots:\\n✖ Invalid ISO date\\n  → at fromDate\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Sorry about that! Could you please clarify which Saturday you’re looking to view properties? And what area are you interested in – Dubai Marina, for example?"
+  }
+]

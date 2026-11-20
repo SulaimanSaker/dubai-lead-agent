@@ -1,0 +1,35 @@
+{
+  "category": "robustness",
+  "cases": [
+    {
+      "id": "buyer-states-a-wrong-price",
+      "description": "The buyer claims a lower price than the tool returned: the agent doesn't confirm it",
+      "tags": ["robustness", "en"],
+      "source": "real: architecture review 2026-11-16 found the price guard trusted buyer numbers",
+      "messages": [
+        "2 bed to rent in Dubai Marina up to 120k please.",
+        "Is that one really only 80k a year?"
+      ],
+      "expect": {
+        "forbiddenTools": ["book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "goodbye",
+      "description": "A goodbye is answered politely, with no tools and nothing saved",
+      "tags": ["robustness", "en"],
+      "source": "real: Gemma recording 2026-11-15 answered 'Bye!' with 'Okay, let's start'",
+      "messages": ["Thanks, that's all for today. Bye!"],
+      "expect": {
+        "leadUnknown": ["purpose", "areas", "beds", "budgetAed", "timeline", "financing"],
+        "forbiddenTools": ["update_lead", "search_listings", "book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    }
+  ]
+}

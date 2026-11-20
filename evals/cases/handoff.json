@@ -1,0 +1,116 @@
+{
+  "category": "handoff",
+  "cases": [
+    {
+      "id": "asks-for-a-real-person",
+      "description": "The buyer asks for a person: handed off with reason asked_for_human",
+      "tags": ["handoff", "en"],
+      "source": "real: Gemma run 2026-11-16 promised a transfer but never called handoff_to_human",
+      "messages": ["I want to speak to a real person, not a bot."],
+      "expect": {
+        "toolCalls": [{ "name": "handoff_to_human", "args": { "reason": "asked_for_human" } }],
+        "viewingBooked": false,
+        "handoff": true,
+        "language": "en"
+      }
+    },
+    {
+      "id": "asks-for-a-discount",
+      "description": "Asking for a discount is a negotiation: handed off",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": [
+        "2 bed to rent in Dubai Marina, up to 120k a year.",
+        "Can you get me 10% off the rent on that one?"
+      ],
+      "expect": {
+        "toolCalls": [{ "name": "handoff_to_human", "args": { "reason": "negotiation" } }],
+        "viewingBooked": false,
+        "handoff": true,
+        "language": "en"
+      }
+    },
+    {
+      "id": "offers-a-lower-price",
+      "description": "Offering a lower purchase price is a negotiation: handed off",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": ["I like the 2 bed for sale in JVC. Would the owner accept 1 million?"],
+      "expect": {
+        "toolCalls": [{ "name": "handoff_to_human", "args": { "reason": "negotiation" } }],
+        "viewingBooked": false,
+        "handoff": true,
+        "language": "en"
+      }
+    },
+    {
+      "id": "complaint",
+      "description": "A complaint is handed off with reason complaint",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": ["Your agent didn't show up for my viewing yesterday. This is unacceptable."],
+      "expect": {
+        "toolCalls": [{ "name": "handoff_to_human", "args": { "reason": "complaint" } }],
+        "viewingBooked": false,
+        "handoff": true,
+        "language": "en"
+      }
+    },
+    {
+      "id": "arabic-asks-for-an-agent",
+      "description": "Arabic request for a human agent: handed off, reply in Arabic",
+      "tags": ["handoff", "ar"],
+      "source": "synthetic",
+      "messages": ["أريد التحدث مع وكيل عقاري حقيقي من فضلك"],
+      "expect": {
+        "toolCalls": [{ "name": "handoff_to_human", "args": { "reason": "asked_for_human" } }],
+        "viewingBooked": false,
+        "handoff": true,
+        "language": "ar"
+      }
+    },
+    {
+      "id": "price-question-is-not-negotiation",
+      "description": "Asking what something costs is not a negotiation: no handoff",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": ["How much is the 2 bed for sale in JVC?"],
+      "expect": {
+        "forbiddenTools": ["handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "general-area-question",
+      "description": "A general question about an area is answered, not handed off",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": ["What's Dubai Hills like for families? We might buy there next year."],
+      "expect": {
+        "forbiddenTools": ["handoff_to_human", "book_viewing"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "nothing-fits-asks-cheaper",
+      "description": "An unhappy-but-normal request ('anything cheaper?') is handled by searching again, not handed off",
+      "tags": ["handoff", "en"],
+      "source": "synthetic",
+      "messages": [
+        "1 bed to rent in Downtown, up to 130k.",
+        "That's too expensive for me. Anything cheaper nearby?"
+      ],
+      "expect": {
+        "toolCalls": [{ "name": "search_listings" }],
+        "forbiddenTools": ["handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    }
+  ]
+}

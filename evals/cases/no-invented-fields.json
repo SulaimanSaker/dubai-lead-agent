@@ -1,0 +1,49 @@
+{
+  "category": "no-invented-fields",
+  "cases": [
+    {
+      "id": "greeting-only",
+      "description": "A greeting is answered without tools and without saving anything",
+      "tags": ["no-invented-fields", "en"],
+      "source": "real: Gemma recording 2026-11-15 answered 'Hi' with an empty update_lead({})",
+      "messages": ["Hi! Who am I talking to?"],
+      "expect": {
+        "leadUnknown": ["purpose", "areas", "beds", "budgetAed", "timeline", "financing"],
+        "forbiddenTools": ["update_lead", "search_listings", "book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "just-browsing-no-requirements",
+      "description": "A browsing buyer gives no requirements: no beds, budget, area or financing invented",
+      "tags": ["no-invented-fields", "en"],
+      "source": "real: Gemma via the API 2026-11-16 saved a timeline the buyer never gave",
+      "messages": ["Just browsing for now. Which areas do you cover?"],
+      "expect": {
+        "leadUnknown": ["purpose", "areas", "beds", "budgetAed", "financing"],
+        "forbiddenTools": ["book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "budget-only",
+      "description": "Only a budget is given: it is saved, and nothing else is guessed",
+      "tags": ["no-invented-fields", "en"],
+      "source": "synthetic",
+      "messages": ["My budget is 90k a year."],
+      "expect": {
+        "lead": { "budgetAed": 90000 },
+        "leadUnknown": ["areas", "beds", "timeline", "financing"],
+        "toolCalls": [{ "name": "update_lead" }],
+        "forbiddenTools": ["book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    }
+  ]
+}

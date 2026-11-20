@@ -1,0 +1,48 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Off-plan question: the off-plan filter is used because the buyer asked, and the handover date comes from get_listing"
+  },
+  {
+    "role": "user",
+    "content": "Do you have any off-plan apartments for sale in Business Bay? When is the handover?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"areas\": [\n    \"Business Bay\"\n  ]\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Business Bay\",\n  \"purpose\": \"sale\",\n  \"status\": \"off_plan\",\n  \"propertyType\": \"apartment\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":[\"Business Bay\"],\"beds\":null,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"beds\",\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: beds, budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L18\",\"title\":\"Off-plan 2BR on the canal, Business Bay\",\"area\":\"Business Bay\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"sale\",\"priceAed\":2250000,\"status\":\"off_plan\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L18\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L18\",\"title\":\"Off-plan 2BR on the canal, Business Bay\",\"area\":\"Business Bay\",\"propertyType\":\"apartment\",\"beds\":2,\"baths\":2,\"sizeSqft\":1180,\"purpose\":\"sale\",\"priceAed\":2250000,\"status\":\"off_plan\",\"handoverDate\":\"2028-03\",\"furnished\":false,\"features\":[\"canal view\",\"payment plan 60/40\"],\"description\":\"New-launch two-bedroom directly on the canal; 60/40 payment plan.\"}}"
+  },
+  {
+    "role": "assistant",
+    "content": "Yes, we have one off-plan apartment for sale in Business Bay:\n\n**Off-plan 2BR on the canal, Business Bay (L18)**\n- Price: AED 2,250,000\n- 2 bedrooms, 2 baths, 1,180 sq ft\n- Canal view, unfurnished\n- Handover: March 2028\n- Payment plan: 60/40\n\nDo you need 2 bedrooms, and roughly what budget are you considering?"
+  }
+]
