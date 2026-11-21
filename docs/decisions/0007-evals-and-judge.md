@@ -1,6 +1,6 @@
 # 0007 — Evals: code checks first, a different model as judge, versioned grading
 
-- **Status:** proposed
+- **Status:** accepted (2026-11-21)
 - **Date:** 2026-11-20
 
 ## Context

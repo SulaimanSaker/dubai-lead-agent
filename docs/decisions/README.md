@@ -11,4 +11,4 @@ New ADRs: use the `write-adr` skill. Never edit an accepted ADR's decision — w
 | 0004 | [The agent layer may use the database](0004-agent-owns-conversation.md)                            | accepted |
 | 0005 | [Tracing with Langfuse behind an observer interface](0005-tracing.md)                              | accepted |
 | 0006 | [Frozen system prompt; changing context as messages](0006-frozen-system-prompt.md)                 | accepted |
-| 0007 | [Evals: code checks first, a different model as judge, versioned grading](0007-evals-and-judge.md) | proposed |
+| 0007 | [Evals: code checks first, a different model as judge, versioned grading](0007-evals-and-judge.md) | accepted |
