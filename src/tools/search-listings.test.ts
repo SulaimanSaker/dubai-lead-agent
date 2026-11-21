@@ -28,6 +28,30 @@ describe("search_listings", () => {
     expect(marina).toMatchObject({ ok: true, total: 4 });
   });
 
+  // Eval traces 2026-11-21: Haiku wrote "Jumeirah Lakes Towers" (with an s) in 5 searches, and all found nothing.
+  it("understands 'Jumeirah Lakes Towers' as Jumeirah Lake Towers", async () => {
+    for (const area of [
+      "Jumeirah Lakes Towers",
+      "jumeirah lakes towers (JLT)",
+      "Jumeirah Lake Tower",
+      "Jumeirah Lakes Tower",
+      // Review 2026-11-21: a name that is only a bracket must not become "" (which would match every listing).
+      "(JLT)",
+    ]) {
+      const result = await searchListings.execute({ area, purpose: "rent", beds: 2 }, ctx);
+      if (!result.ok) throw new Error("expected ok");
+      expect(
+        result.listings.map((l) => l.id),
+        area,
+      ).toEqual(["L28"]);
+    }
+  });
+
+  it("never turns a bracket-only area into 'any area'", async () => {
+    const result = await searchListings.execute({ area: "()", purpose: "rent" }, ctx);
+    expect(result).toMatchObject({ ok: true, total: 0 });
+  });
+
   it("returns at most 5 results, cheapest first", async () => {
     const result = await searchListings.execute({ purpose: "rent" }, ctx);
     if (!result.ok) throw new Error("expected ok");

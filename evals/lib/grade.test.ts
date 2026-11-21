@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import type { LlmMessage } from "@/agent/llm";
 import type { Lead, Viewing } from "@/db/schema";
+import { AREA_ALIASES as SEARCH_ALIASES } from "@/tools/search-listings";
 import { evalCaseSchema, type EvalCase } from "./cases";
 import { gradeCase, sameArea } from "./grade";
 import type { CaseRun } from "./run-case";
@@ -245,7 +246,15 @@ describe("sameArea", () => {
     expect(sameArea("Dubai Marina", "Marina")).toBe(true);
     expect(sameArea("Dubai Hills Estate", "Dubai Hills")).toBe(true);
     expect(sameArea("Dubai Marina", "Dubai Marina, near JBR")).toBe(true);
+    expect(sameArea("Jumeirah Lake Towers", "Jumeirah Lakes Towers")).toBe(true);
     expect(sameArea("Dubai Marina", "Business Bay")).toBe(false);
+  });
+
+  // The grader must not mark a lead wrong for a name the search tool understands (review 2026-11-21).
+  it("accepts every area alias that search_listings knows", () => {
+    for (const [alias, area] of Object.entries(SEARCH_ALIASES)) {
+      expect(sameArea(area, alias), alias).toBe(true);
+    }
   });
 
   // Review finding: "x".includes("") is true, and "Dubai" is inside every "... Dubai ..." name.

@@ -24,9 +24,12 @@ export const PASS_CHECKS = [
   "language",
 ] as const;
 
+/** Must accept every alias search_listings knows (a test checks it); may know more. */
 const AREA_ALIASES: Record<string, string> = {
   jvc: "jumeirah village circle",
   jlt: "jumeirah lake towers",
+  "jumeirah lakes towers": "jumeirah lake towers",
+  "jumeirah lakes tower": "jumeirah lake towers",
   downtown: "downtown dubai",
   marina: "dubai marina",
   "dubai hills": "dubai hills estate",

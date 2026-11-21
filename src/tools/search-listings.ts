@@ -6,18 +6,27 @@ import { defineTool } from "@/tools/types";
 const MAX_RESULTS = 5;
 
 /** Common short names buyers use → the area name stored in the database. */
-const AREA_ALIASES: Record<string, string> = {
+export const AREA_ALIASES: Readonly<Record<string, string>> = {
   jvc: "Jumeirah Village Circle",
   jlt: "Jumeirah Lake Towers",
+  // Models write "Lakes" (eval traces 2026-11-21: 5 searches, 0 results).
+  "jumeirah lakes towers": "Jumeirah Lake Towers",
+  "jumeirah lakes tower": "Jumeirah Lake Towers",
   "the palm": "Palm Jumeirah",
   downtown: "Downtown Dubai",
   marina: "Dubai Marina",
   "dubai hills": "Dubai Hills Estate",
 };
 
-function normalizeArea(area: string) {
-  const key = area.trim().toLowerCase();
-  return AREA_ALIASES[key] ?? area.trim();
+/**
+ * "Jumeirah Lakes Towers (JLT)" → "Jumeirah Lake Towers": drop a note in brackets, then map aliases. A name that is
+ * only a bracket uses what's inside ("(JLT)" → "JLT"), and never becomes "" (LIKE '%%' would match every listing).
+ */
+export function normalizeArea(area: string): string {
+  const outside = area.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const inside = area.replace(/[()]/g, " ").trim();
+  const name = outside || inside || area.trim();
+  return AREA_ALIASES[name.toLowerCase()] ?? name;
 }
 
 const inputSchema = z.object({
