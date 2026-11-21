@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Only a budget is given: it is saved, and nothing else is guessed"
+  },
+  {
+    "role": "user",
+    "content": "My budget is 90k a year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"budgetAed\": 90000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":90000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":null,\"beds\":null,\"budgetAed\":90000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"areas\",\"beds\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: areas, beds, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks! A budget of AED 90,000 a year works for renting. Which area would you like to live in, and how many bedrooms do you need?"
+  }
+]

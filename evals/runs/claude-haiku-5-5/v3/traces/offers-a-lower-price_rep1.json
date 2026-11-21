@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Offering a lower purchase price is a negotiation: handed off"
+  },
+  {
+    "role": "user",
+    "content": "I like the 2 bed for sale in JVC. Would the owner accept 1 million?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"areas\": [\n    \"JVC\"\n  ],\n  \"beds\": 2\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "handoff_to_human",
+    "content": "{\n  \"reason\": \"negotiation\",\n  \"summary\": \"Buyer is interested in a 2-bedroom property for sale in JVC and asks whether the owner would accept an offer of AED 1,000,000. Price negotiation needs a human agent.\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":[\"JVC\"],\"beds\":2,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "handoff_to_human",
+    "content": "{\"ok\":true,\"alreadyHandedOff\":false,\"message\":\"Handed off. Tell the buyer a human agent will contact them shortly.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks for your interest in the 2-bedroom in JVC. Price negotiations are handled by our human agents, so I've passed your question about your offer to them. A human agent will contact you shortly. In the meantime, is there anything else you'd like to know about the property?"
+  }
+]

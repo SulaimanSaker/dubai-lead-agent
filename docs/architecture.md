@@ -74,8 +74,9 @@ Buyer message
   time, lead state) is added once, right after the buyer's message, as a `context` message; a price-guard correction
   is a `context` message too. Everything sent is saved and never edited: Claude rejects a replayed thinking block
   whose prefix changed.
-- Prompts are versioned (`src/agent/prompts/v1.ts`); each saved reply records provider, model, prompt version,
-  tokens, latency and outcome.
+- Prompts are versioned (`src/agent/prompts/v1.ts` … `v3.ts`; the app uses `CURRENT_PROMPT` = v3). A version is the
+  system prompt, the turn context and the price-guard correction note. Each saved reply records provider, model,
+  prompt version, tokens, latency and outcome.
 
 ## App (UI + API)
 

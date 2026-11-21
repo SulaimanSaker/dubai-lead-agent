@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Only a budget is given: it is saved, and nothing else is guessed"
+  },
+  {
+    "role": "user",
+    "content": "My budget is 90k a year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"budgetAed\": 90000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"maxPriceAed\": 90000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":90000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":7,\"listings\":[{\"id\":\"L07\",\"title\":\"Furnished studio with pool access, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":45000,\"status\":\"ready\"},{\"id\":\"L26\",\"title\":\"Studio with lake view, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":48000,\"status\":\"ready\"},{\"id\":\"L15\",\"title\":\"Furnished studio with canal view, Business Bay\",\"area\":\"Business Bay\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":58000,\"status\":\"ready\"},{\"id\":\"L05\",\"title\":\"Studio near Marina Walk\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":62000,\"status\":\"ready\"},{\"id\":\"L08\",\"title\":\"1BR with balcony, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":65000,\"status\":\"ready\"}],\"message\":\"Showing the 5 cheapest of 7 matches.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks! With a budget of AED 90,000 a year, I found some rental options. Here are a few:\n\n- Furnished studio with pool access, JVC: AED 45,000\n- Studio with lake view, JLT: AED 48,000\n- 1BR with balcony, JVC: AED 65,000\n\nAre you looking to rent, and how many bedrooms and which areas do you prefer?"
+  }
+]

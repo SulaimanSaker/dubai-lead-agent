@@ -3,6 +3,8 @@ import { ZodError } from "zod";
 import { handleBuyerMessage, type ChatDeps } from "@/agent/chat";
 import { appendMessages, loadConversation, loadTurnMeta } from "@/agent/conversation";
 import { getChatView, getLeadDetail } from "@/agent/leads";
+import { CURRENT_PROMPT } from "@/agent/prompts";
+import { PROMPT_V2 } from "@/agent/prompts/v2";
 import { FakeProvider, textStep, toolStep, type FakeStep } from "@/agent/testing/fake-provider";
 import type { Db } from "@/db/client";
 import { messages } from "@/db/schema";
@@ -114,10 +116,18 @@ describe("handleBuyerMessage", () => {
     expect(turn?.meta).toMatchObject({
       provider: "local",
       model: "fake-model",
-      promptVersion: "v1",
+      promptVersion: CURRENT_PROMPT.version,
       inputTokens: 100,
       outcome: "replied",
     });
+  });
+
+  it("runs with the prompt version it is given (evals compare versions)", async () => {
+    const chat = { ...deps([textStep("Hello!")]), prompt: PROMPT_V2 };
+    await handleBuyerMessage({ message: "Hi" }, chat);
+    expect(chat.provider.requests[0]?.system).toBe(PROMPT_V2.stable);
+    const [turn] = await loadTurnMeta(db, LEAD_ID);
+    expect(turn?.meta).toMatchObject({ promptVersion: "v2" });
   });
 
   it.each([

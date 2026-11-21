@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: A viewing request without any property: the agent asks what they're looking for instead of booking"
+  },
+  {
+    "role": "user",
+    "content": "Can I book a viewing for tomorrow at 3pm?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "get_available_slots",
+    "content": "{\n  \"days\": 1,\n  \"fromDate\": \"2026-11-17\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_available_slots",
+    "content": "{\"ok\":true,\"timezone\":\"Asia/Dubai (UTC+4)\",\"checked\":{\"from\":\"2026-11-17\",\"to\":\"2026-11-17\"},\"slots\":[{\"startsAt\":\"2026-11-17T10:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 10:00\"},{\"startsAt\":\"2026-11-17T11:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 11:00\"},{\"startsAt\":\"2026-11-17T12:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 12:00\"},{\"startsAt\":\"2026-11-17T13:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 13:00\"},{\"startsAt\":\"2026-11-17T14:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 14:00\"},{\"startsAt\":\"2026-11-17T15:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 15:00\"},{\"startsAt\":\"2026-11-17T16:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 16:00\"},{\"startsAt\":\"2026-11-17T17:00:00+04:00\",\"label\":\"Tue 17 Nov 2026, 17:00\"}],\"truncated\":false,\"message\":\"8 free slot(s). Offer the buyer 2–3 of them.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Yes, 3pm tomorrow is free: Tue 17 Nov 2026, 15:00. To book, I need to know which property you'd like to see. Could you tell me the area or the listing you have in mind? If you're not sure yet, I can search for options first."
+  }
+]

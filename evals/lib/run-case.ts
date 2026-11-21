@@ -5,6 +5,7 @@ import { loadConversation, loadTurnMeta } from "@/agent/conversation";
 import type { LlmMessage, LlmProvider } from "@/agent/llm";
 import type { LoopLimits } from "@/agent/loop";
 import type { TurnObserver } from "@/agent/observer";
+import type { PromptVersion } from "@/agent/prompts";
 import { leads, viewings, type Lead, type Viewing } from "@/db/schema";
 import { createTestDb } from "@/db/test-db";
 import { ensureLead } from "@/tools/lib/leads";
@@ -35,6 +36,8 @@ export interface RunCaseOptions {
   observer?: TurnObserver;
   traceTags?: string[];
   limits?: Partial<LoopLimits>;
+  /** Default: the app's current prompt. */
+  prompt?: PromptVersion;
 }
 
 /**
@@ -76,6 +79,7 @@ export async function runCase(
         observer: options.observer,
         traceTags: options.traceTags,
         limits: options.limits,
+        prompt: options.prompt,
       },
     );
     turns.push({

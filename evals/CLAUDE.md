@@ -23,4 +23,7 @@ both `viewingBooked` and `handoff`, so doing nothing can't pass.
 - Changing the judge? Bump `JUDGE_VERSION`, re-grade with `npm run evals:rejudge` (no agent re-run), then re-score
   calibration with `npm run evals:calibrate -- score <model>`.
 - Run the null agent (`--provider null`) after any grading change: it must stay near 0%.
+- Run folders follow the report layout: `evals/runs/<model>/baseline`, then `v1`, `v2`, … for each change, each with a
+  `change.md` (first line = what changed). For Haiku: `baseline` = prompt v1, `v1` = prompt v2, `v2` = prompt v2 +
+  Arabic amounts in the guard (3 Arabic cases), `v3` = prompt v3. A new prompt version: `--prompt v4 --variant v4`. Each row saves `prompt_version`; a folder never mixes versions (the runner refuses).
 - Report real numbers only. Never estimate or invent a score.

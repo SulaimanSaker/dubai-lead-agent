@@ -1,0 +1,82 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Requirements arrive over three messages: earlier fields are kept, the lead ends fully qualified"
+  },
+  {
+    "role": "user",
+    "content": "Hi, I'm looking for a place to rent."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi, welcome! I'd be happy to help you find a rental. Which area in Dubai are you interested in, and how many bedrooms do you need?"
+  },
+  {
+    "role": "user",
+    "content": "2 bedrooms, ideally in JLT."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"JLT\"\n  ],\n  \"beds\": 2\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"JLT\",\n  \"beds\": 2,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"JLT\"],\"beds\":2,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one 2-bedroom rental in JLT: a 2BR apartment near the metro, at AED 110,000 per year. What budget are you aiming for, and when would you like to move in?"
+  },
+  {
+    "role": "user",
+    "content": "Budget is 110k a year. I'll pay cash and I need to move in as soon as possible."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=JLT; beds=2.\nStill unknown: budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"budgetAed\": 110000,\n  \"financing\": \"cash\",\n  \"timeline\": \"asap\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L28\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"JLT\"],\"beds\":2,\"budgetAed\":110000,\"timeline\":\"asap\",\"financing\":\"cash\",\"status\":\"qualified\"},\"missing\":[],\"message\":\"Lead is fully qualified.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"baths\":2,\"sizeSqft\":1300,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\",\"handoverDate\":null,\"furnished\":false,\"features\":[\"lake view\",\"metro nearby\",\"covered parking\"],\"description\":\"Two-bedroom next to the metro, a cheaper option close to Dubai Marina.\"}}"
+  },
+  {
+    "role": "assistant",
+    "content": "Good news: the 2BR apartment near the metro in JLT is ready to move into and fits your AED 110,000 yearly budget. It has 2 bathrooms, about 1,300 sqft, a lake view, covered parking, and is unfurnished.\n\nWould you like to book a viewing? If so, which day suits you best this week?"
+  }
+]

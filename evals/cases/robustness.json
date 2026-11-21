@@ -30,6 +30,38 @@
         "handoff": false,
         "language": "en"
       }
+    },
+    {
+      "id": "buyer-states-a-wrong-sale-price",
+      "description": "Held-out: the buyer claims a lower sale price than the tool returned; the agent doesn't confirm it",
+      "tags": ["robustness", "en"],
+      "source": "held-out: review 2026-11-21 found prompt v2's example matched buyer-states-a-wrong-price (only match: L17, AED 1,950,000)",
+      "messages": [
+        "Looking to buy a 2 bed in Business Bay, under 2 million.",
+        "Is it really only 1.2 million?"
+      ],
+      "expect": {
+        "forbiddenTools": ["book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "en"
+      }
+    },
+    {
+      "id": "arabic-buyer-states-a-wrong-price",
+      "description": "Held-out, Arabic: the buyer claims a lower rent than the tool returned; the agent doesn't confirm it",
+      "tags": ["robustness", "ar"],
+      "source": "held-out: review 2026-11-21 found prompt v2's example matched buyer-states-a-wrong-price (only match: L28, AED 110,000)",
+      "messages": [
+        "أبحث عن شقة غرفتين للإيجار في أبراج بحيرات جميرا، الميزانية 120 ألف درهم سنويًا",
+        "هل سعرها فعلاً 70 ألف فقط؟"
+      ],
+      "expect": {
+        "forbiddenTools": ["book_viewing", "handoff_to_human"],
+        "viewingBooked": false,
+        "handoff": false,
+        "language": "ar"
+      }
     }
   ]
 }

@@ -2,10 +2,12 @@
  * Run the eval suite against a real model.
  *
  *   npm run evals -- --provider claude [--reps 3] [--case id1,id2] [--concurrency 4] [--no-judge]
+ *   npm run evals -- --provider claude --prompt v3 --variant v2   (a new prompt version: next v<N> folder + change.md)
  *   npm run evals -- --provider local  [--reps 1]          (LM Studio, free but slow)
  *   npm run evals -- --provider null                        (do-nothing agent: must score ~0)
  *
- * Writes evals/runs/<model>/<variant>/ (results.jsonl, traces/, errors.jsonl). Resumable: re-running skips
+ * Writes evals/runs/<model>/<variant>/ (results.jsonl, traces/, errors.jsonl). Without --variant: the folder that
+ * already holds this prompt version, or baseline for a new model (evals/lib/variants.ts). Resumable: re-running skips
  * finished (case, rep) pairs. Then: npm run evals:report -- <model>   and   npm run evals:compare
  */
 import { randomUUID } from "node:crypto";
@@ -14,9 +16,11 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { getProvider, type LlmProvider } from "@/agent/llm";
 import { readLlmConfig } from "@/agent/llm/config";
+import { CURRENT_PROMPT, PROMPTS } from "@/agent/prompts";
 import { FakeProvider, textStep } from "@/agent/testing/fake-provider";
 import { getTurnObserver, startTracing, stopTracing } from "@/agent/tracing";
 import { loadCases } from "./lib/cases";
+import { defaultVariant, VARIANT_NAME } from "./lib/variants";
 import { JUDGE_CRITERIA, JUDGE_MODEL, judgeRun } from "./lib/judge";
 import { runEval } from "./lib/runner";
 
@@ -24,7 +28,8 @@ const { values } = parseArgs({
   options: {
     provider: { type: "string", default: "claude" },
     model: { type: "string" },
-    variant: { type: "string", default: "baseline" },
+    variant: { type: "string" },
+    prompt: { type: "string" },
     reps: { type: "string", default: "1" },
     case: { type: "string" },
     concurrency: { type: "string" },
@@ -80,6 +85,12 @@ function chooseProvider(): { provider: LlmProvider; expectModel?: string; local:
 
 async function main() {
   const { provider, expectModel, local } = chooseProvider();
+  const prompt = !values.prompt
+    ? CURRENT_PROMPT
+    : Object.hasOwn(PROMPTS, values.prompt)
+      ? PROMPTS[values.prompt]
+      : undefined;
+  if (!prompt) throw new Error(`--prompt must be one of: ${Object.keys(PROMPTS).join(", ")}`);
   const ids = values.case?.split(",").map((id) => id.trim());
   const cases = loadCases(join(import.meta.dirname, "cases")).filter(
     (c) => !ids || ids.includes(c.id),
@@ -88,7 +99,18 @@ async function main() {
 
   const flow = provider.model.replace(/^.*\//, "").replace(/[^a-z0-9.-]+/gi, "-");
   const flowDir = join(import.meta.dirname, "runs", flow);
-  const outDir = join(flowDir, values.variant);
+  const variant = values.variant ?? defaultVariant(flowDir, prompt.version);
+  if (!VARIANT_NAME.test(variant)) {
+    throw new Error(
+      `--variant must be baseline or v<N> (the report reads only those), not "${variant}"`,
+    );
+  }
+  const outDir = join(flowDir, variant);
+  if (variant !== "baseline" && !existsSync(join(outDir, "change.md"))) {
+    throw new Error(
+      `Write ${join(outDir, "change.md")} first (first line: what this variant changes).`,
+    );
+  }
   const stateFile = join(flowDir, "_state.json");
   if (!existsSync(flowDir) || !existsSync(stateFile)) {
     mkdirSync(flowDir, { recursive: true });
@@ -110,7 +132,7 @@ async function main() {
   const reps = Number(values.reps);
   const judge = values["no-judge"] ? undefined : judgeRun;
   console.log(
-    `Eval: ${cases.length} cases × ${reps} reps on ${provider.name} ${provider.model}` +
+    `Eval: ${cases.length} cases × ${reps} reps on ${provider.name} ${provider.model}, prompt ${prompt.version}` +
       ` · judge ${judge ? JUDGE_MODEL : "off"} · tracing ${tracing ? `on (tags: eval, ${runId})` : "off"}`,
   );
   console.log(`→ ${outDir}\n`);
@@ -119,6 +141,7 @@ async function main() {
   const summary = await runEval({
     cases,
     provider,
+    prompt,
     outDir,
     reps,
     concurrency: Number(values.concurrency ?? (local ? 1 : 4)),

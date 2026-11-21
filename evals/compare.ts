@@ -1,11 +1,13 @@
 /**
- * Compare models: one row per evals/runs/<model>/baseline, written to evals/runs/COMPARISON.md and printed.
+ * Compare models and prompt versions: one row per evals/runs/<model>/<variant> (baseline, v1, … with the prompt
+ * version each holds), written to evals/runs/COMPARISON.md and printed.
  * Means are per case over its reps, then over cases (so a case with more reps doesn't weigh more).
  *
  *   npm run evals:compare
  */
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { VARIANT_NAME } from "./lib/variants";
 
 const RUNS = join(import.meta.dirname, "runs");
 const COLUMNS = [
@@ -27,6 +29,7 @@ const COLUMNS = [
 interface Row {
   prompt_id: string;
   rep: number;
+  prompt_version?: string;
   grade: Record<string, number>;
   cost_usd: number | null;
   latency_s: number;
@@ -46,11 +49,25 @@ function caseMeans(rows: Row[], pick: (row: Row) => number | undefined): number[
 const mean = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
 
 const lines: string[] = [];
-const flows = existsSync(RUNS)
-  ? readdirSync(RUNS).filter((name) => existsSync(join(RUNS, name, "baseline", "results.jsonl")))
-  : [];
+const isDir = (path: string) => existsSync(path) && statSync(path).isDirectory();
+/** [model, variant] pairs that have results; the baseline first within each model. */
+const runs = (existsSync(RUNS) ? readdirSync(RUNS) : [])
+  .filter((model) => isDir(join(RUNS, model)))
+  .flatMap((model) =>
+    readdirSync(join(RUNS, model))
+      .filter(
+        (variant) =>
+          VARIANT_NAME.test(variant) && existsSync(join(RUNS, model, variant, "results.jsonl")),
+      )
+      .sort((a, b) =>
+        a === "baseline" ? -1 : b === "baseline" ? 1 : Number(a.slice(1)) - Number(b.slice(1)),
+      )
+      .map((variant) => [model, variant] as const),
+  );
 const header = [
   "Model",
+  "Variant",
+  "Prompt",
   "Cases × reps",
   ...COLUMNS.map(([, label]) => label),
   "Latency / turn",
@@ -59,8 +76,8 @@ const header = [
 ];
 lines.push(`| ${header.join(" | ")} |`, `| ${header.map(() => "---").join(" | ")} |`);
 
-for (const flow of flows) {
-  const dir = join(RUNS, flow, "baseline");
+for (const [model, variant] of runs) {
+  const dir = join(RUNS, model, variant);
   const rows = readFileSync(join(dir, "results.jsonl"), "utf8")
     .split("\n")
     .filter(Boolean)
@@ -89,7 +106,7 @@ for (const flow of flows) {
     typeof row.meta?.agent_cost_usd === "number" ? row.meta.agent_cost_usd : undefined,
   );
   lines.push(
-    `| ${[flow, `${cases} × ${(rows.length / cases).toFixed(1)}`, ...cells, `${latency.toFixed(1)} s`, costs.length ? `$${mean(costs).toFixed(5)}` : "—", String(errors)].join(" | ")} |`,
+    `| ${[model, variant, [...new Set(rows.map((row) => row.prompt_version ?? "?"))].join(", "), `${cases} × ${(rows.length / cases).toFixed(1)}`, ...cells, `${latency.toFixed(1)} s`, costs.length ? `$${mean(costs).toFixed(5)}` : "—", String(errors)].join(" | ")} |`,
   );
 }
 

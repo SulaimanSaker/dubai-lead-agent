@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Typos and informal writing: the facts are still understood and saved"
+  },
+  {
+    "role": "user",
+    "content": "hii lookng for 3bed townhous in arabian ranches to rent, budjet 250k, cash"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Arabian Ranches\"\n  ],\n  \"beds\": 3,\n  \"budgetAed\": 250000,\n  \"financing\": \"cash\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Arabian Ranches\",\n  \"beds\": 3,\n  \"maxPriceAed\": 250000,\n  \"propertyType\": \"townhouse\",\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Arabian Ranches\"],\"beds\":3,\"budgetAed\":250000,\"timeline\":null,\"financing\":\"cash\",\"status\":\"new\"},\"missing\":[\"timeline\"],\"message\":\"Saved. Still unknown: timeline. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":0,\"listings\":[],\"message\":\"No listings match these filters. Ask the buyer which filter (area, bedrooms, type) they can be flexible on.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks for the details! I couldn't find a 3-bedroom townhouse in Arabian Ranches for rent within AED 250,000 right now. Would you be open to a different budget, or to a villa or another area nearby? Also, when are you hoping to move in?"
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: A complaint is handed off with reason complaint"
+  },
+  {
+    "role": "user",
+    "content": "Your agent didn't show up for my viewing yesterday. This is unacceptable."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "handoff_to_human",
+    "content": "{\n  \"reason\": \"complaint\",\n  \"summary\": \"The buyer says the agent did not show up for their viewing yesterday and is very upset. They need someone to look into the missed appointment and follow up.\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "handoff_to_human",
+    "content": "{\"ok\":true,\"alreadyHandedOff\":false,\"message\":\"Handed off. Tell the buyer a human agent will contact them shortly.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm sorry about the missed viewing. That's not the experience we want you to have. I've passed your complaint to a human agent, who will contact you shortly to look into what happened and arrange next steps."
+  }
+]

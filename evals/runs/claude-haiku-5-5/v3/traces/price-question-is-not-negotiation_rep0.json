@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Asking what something costs is not a negotiation: no handoff"
+  },
+  {
+    "role": "user",
+    "content": "How much is the 2 bed for sale in JVC?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"areas\": [\n    \"JVC\"\n  ],\n  \"beds\": 2\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"JVC\",\n  \"beds\": 2,\n  \"purpose\": \"sale\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":[\"JVC\"],\"beds\":2,\"budgetAed\":null,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"budgetAed\",\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: budgetAed, timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L09\",\"title\":\"2BR near the community park, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"sale\",\"priceAed\":1150000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "The 2-bedroom apartment for sale in JVC is a ready unit near the community park, priced at AED 1,150,000. Would you like more details or to arrange a viewing? Also, what is your budget and when are you looking to buy?"
+  }
+]

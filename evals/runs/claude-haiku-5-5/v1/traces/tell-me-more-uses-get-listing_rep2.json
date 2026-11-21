@@ -1,0 +1,60 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: After a search, 'tell me more' fetches the listing's details with get_listing"
+  },
+  {
+    "role": "user",
+    "content": "2 bed to rent in Dubai Marina, budget 120k a year."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Dubai Marina\"\n  ],\n  \"beds\": 2,\n  \"budgetAed\": 120000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Marina\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Dubai Marina\"],\"beds\":2,\"budgetAed\":120000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L02\",\"title\":\"Spacious 2BR in Al Sahab Tower\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":115000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one match: **Spacious 2BR in Al Sahab Tower**, Dubai Marina, a ready apartment at **AED 115,000 per year**.\n\nWould you like more details on it, or to book a viewing? Also, when are you hoping to move in?"
+  },
+  {
+    "role": "user",
+    "content": "Tell me more about that one."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=Dubai Marina; beds=2; budgetAed=120000.\nStill unknown: timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L02\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L02\",\"title\":\"Spacious 2BR in Al Sahab Tower\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":2,\"baths\":2,\"sizeSqft\":1250,\"purpose\":\"rent\",\"priceAed\":115000,\"status\":\"ready\",\"handoverDate\":null,\"furnished\":false,\"features\":[\"pool\",\"gym\",\"covered parking\"],\"description\":\"Unfurnished two-bedroom in an established tower with large rooms and one parking space.\"}}"
+  },
+  {
+    "role": "assistant",
+    "content": "Here are the details for **Spacious 2BR in Al Sahab Tower**:\n\n- Dubai Marina, apartment, ready to move in\n- 2 bedrooms, 2 bathrooms, 1,250 sq ft\n- Unfurnished\n- Pool, gym, covered parking (one space)\n- Rent: **AED 115,000 per year**\n\nWould you like to book a viewing? If so, when could you move in?"
+  }
+]

@@ -52,3 +52,19 @@ What we measured while building it:
 - A judge change means: bump `JUDGE_VERSION`, re-grade, re-score calibration, re-run the null agent.
 - Rows are resumed by (case, rep) only; when prompt v2 arrives, results go to a new variant directory so old rows
   aren't reused.
+
+## Addendum (2026-11-21, prompt v2)
+
+- **One prompt version per run folder**, enforced: every row saves `prompt_version`, and the runner refuses to add
+  rows of another version (and any turn that used another version). Folders follow the report builder's layout:
+  `baseline`, then `v1`, `v2`, … with a `change.md` (`evals/lib/variants.ts` picks the default).
+- **A prompt version is more than the system prompt:** `PromptVersion` now also holds the price-guard
+  correction note (`priceCorrection`), because it is an instruction to the model. Released versions are locked by
+  tests (hashes of v1's and v2's text, snapshots of v1's dynamic part and note).
+- **Prompt examples must not copy an eval case.** v2's example matched `buyer-states-a-wrong-price`, which
+  inflates that case; new rules are checked on held-out cases.
+- **Headline `pass` includes `language`** since 2026-11-21 (an English reply to an Arabic buyer is a failure);
+  `style` stays separate.
+- **The price grader and the guard share `findInventedPrices`.** A guard change is also a grader change: re-grade
+  the saved rows (no model calls) so every version is graded the same way. Since 2026-11-21 it reads Arabic
+  thousand / million words.

@@ -1,0 +1,28 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: A browsing buyer gives no requirements: no beds, budget, area or financing invented"
+  },
+  {
+    "role": "user",
+    "content": "Just browsing for now. Which areas do you cover?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"timeline\": \"browsing\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":null,\"timeline\":\"browsing\",\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"budgetAed\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, budgetAed, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Welcome, and no pressure to decide yet. I can search our listings by area, such as Dubai Marina, JVC or Downtown, but I don't have a full list of every area I can cover here. Are you looking to rent or to buy, and is there an area you already have in mind?"
+  }
+]

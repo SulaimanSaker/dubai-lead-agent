@@ -3,7 +3,8 @@
  * traces/). Code checks are kept as they are; only the judge's scores, `pass`, the judge cost and
  * `judge_version` change. Rows already graded by the current judge version are skipped.
  *
- *   npm run evals:rejudge -- claude-haiku-5-5 gemma-3-4b      (or no names = every flow in evals/runs)
+ *   npm run evals:rejudge -- claude-haiku-5-5 claude-haiku-5-5/v1   (a model = all its variants;
+ *                                                                     no names = everything in evals/runs)
  *
  * Before changing anything, the rows are copied to results.judge-<old version>.jsonl (once per old version), so
  * before/after can be compared. Don't run `evals` on the same flow at the same time: this rewrites results.jsonl.
@@ -32,8 +33,17 @@ const JUDGE_IDS = Object.keys(JUDGE_CRITERIA);
 const CONCURRENCY = 4;
 const cases = new Map(loadCases(join(import.meta.dirname, "cases")).map((c) => [c.id, c]));
 
+/** "model/variant" for every run folder (one with results.jsonl) under evals/runs/<model>/. */
+function runFolders(model: string): string[] {
+  return readdirSync(join(RUNS, model), { withFileTypes: true })
+    .filter(
+      (entry) => entry.isDirectory() && existsSync(join(RUNS, model, entry.name, "results.jsonl")),
+    )
+    .map((entry) => `${model}/${entry.name}`);
+}
+
 async function rejudgeFlow(flow: string) {
-  const dir = join(RUNS, flow, "baseline");
+  const dir = join(RUNS, flow);
   const resultsFile = join(dir, "results.jsonl");
   const rows = readFileSync(resultsFile, "utf8")
     .split("\n")
@@ -107,10 +117,14 @@ async function rejudgeFlow(flow: string) {
   if (changes.length) console.log(changes.sort().join("\n"));
 }
 
-const flows = process.argv.slice(2);
-const targets = flows.length
-  ? flows
-  : readdirSync(RUNS).filter((name) => existsSync(join(RUNS, name, "baseline", "results.jsonl")));
+const names = process.argv.slice(2);
+const targets = (
+  names.length
+    ? names
+    : readdirSync(RUNS, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+).flatMap((name) => (name.includes("/") ? [name] : runFolders(name)));
 async function main() {
   for (const flow of targets) await rejudgeFlow(flow);
 }

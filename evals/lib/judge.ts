@@ -5,6 +5,8 @@
  * The judge sees what the buyer saw (replies, not the text written next to tool calls) plus what the agent was
  * told (its system prompt, tool descriptions and turn context), so a fact from the instructions ("rent prices
  * are per year") isn't called invented. Judge v1 had neither; the full Haiku and Gemma runs showed both flaws.
+ * v3 (architecture review): tool results are no longer cut at 1,200 characters (slot lists can be longer), and
+ * example values in the instructions don't count as facts.
  */
 import { z } from "zod";
 import { claudeStructured, type StructuredRequest } from "@/agent/llm/structured";
@@ -16,7 +18,7 @@ import type { TraceTurn } from "./trace";
 
 export const JUDGE_MODEL = "claude-sonnet-5-5";
 /** Saved on every row, so a re-grade knows which rows an older judge graded. */
-export const JUDGE_VERSION = "v2";
+export const JUDGE_VERSION = "v3";
 
 export const JUDGE_CRITERIA = {
   answers:
@@ -50,8 +52,9 @@ ${Object.entries(JUDGE_CRITERIA)
   .map(([id, text]) => `- ${id}: ${text}`)
   .join("\n")}
 
-What the assistant was told. Facts stated here are true and count as grounded; the instructions are not
-criteria (grade only the criteria above).
+What the assistant was told. Its rules and general facts here (e.g. how rent is priced, working hours) are
+true and count as grounded. Example values in the instructions (e.g. a sample price) are NOT facts about any
+listing. The instructions are not criteria: grade only the criteria above.
 
 <assistant_instructions>
 ${prompt.stable}
@@ -85,7 +88,9 @@ const judgeAnswer = z.object(
   ) as Record<JudgeCriterion, z.ZodObject<{ pass: z.ZodBoolean; reason: z.ZodString }>>,
 );
 
-const clip = (text: string, max = 1_200) =>
+/** Only very long tool results are cut (the longest seen is ~2,000 characters: a list of free slots). */
+export const TOOL_RESULT_LIMIT = 6_000;
+const clip = (text: string, max = TOOL_RESULT_LIMIT) =>
   text.length > max ? `${text.slice(0, max)}… [cut]` : text;
 const oneLine = (text: string) => text.replace(/\s*\n\s*/g, " ");
 

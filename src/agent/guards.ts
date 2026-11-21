@@ -12,10 +12,28 @@ export interface MoneyAmount {
 const NUM = String.raw`\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?`;
 const GROUPED = String.raw`\d{1,3}(?:,\d{3})+`;
 const END = String.raw`(?![\w²])`;
+/**
+ * Arabic "thousand" / "million" words, with and without hamza (ألف / الف, آلاف / ألاف / الاف) and with tanween
+ * (ألفًا, ألفاً). Found 2026-11-21 by a held-out eval: "70 ألف درهم" (70 thousand dirhams) was not read as money, so
+ * an Arabic reply could confirm a made-up price. Not covered: amounts written only in words ("مليون درهم",
+ * "مليونين") and dual forms; the agent writes prices as digits.
+ */
+const AR_THOUSAND = "ألفا|ألف|الفا|الف|آلاف|ألاف|الاف";
+const AR_MILLION = "ملايين|مليونا|مليون";
+/**
+ * After an Arabic word: optional diacritics (the tanween in ألفًا / ألفاً), then no further Arabic letter, so
+ * ألفاظ ("words"), مليونير ("millionaire"), ألفية and الفيلا ("the villa") are not read as amounts. `\w` alone only
+ * stops at ASCII letters.
+ */
+const AR_END = String.raw`[ً-ْ]*(?![\w²ء-ي])`;
+const AR_WORD = String.raw`(?:${AR_THOUSAND}|${AR_MILLION})${AR_END}`;
 /** Next to a currency, "m" means million ("AED 1.5m"). */
-const SUFFIX = String.raw`\s?(?:[kK]|thousand|mn|million|[mM])${END}`;
+const SUFFIX = String.raw`\s?(?:(?:[kK]|thousand|mn|million|[mM])${END}|${AR_WORD})`;
 /** Without a currency, lowercase "m" is usually metres ("500m from the beach"), so only "M" counts. */
-const BARE_SUFFIX = String.raw`\s?(?:[kK]|M|mn|million)${END}`;
+const BARE_SUFFIX = String.raw`\s?(?:(?:[kK]|M|mn|million)${END}|${AR_WORD})`;
+const IS_THOUSAND = new RegExp(`^(?:k|thousand|${AR_THOUSAND})$`);
+/** "ألفًا" → "ألفا", so the unit can be looked up without its diacritics. */
+const stripDiacritics = (text: string) => text.replace(/[ً-ْ]/g, "");
 const CURRENCY = String.raw`(?:AED|Aed|aed|DHS|Dhs?\.?|dhs?\.?|[Dd]irhams?|درهم)`;
 
 /**
@@ -43,7 +61,7 @@ function normalizeDigits(text: string): string {
 function toAed(number: string, suffix: string | undefined): number {
   const base = Number.parseFloat(number.replace(/,/g, ""));
   const unit = (suffix ?? "").trim().toLowerCase();
-  const factor = unit === "k" || unit === "thousand" ? 1_000 : unit === "" ? 1 : 1_000_000;
+  const factor = IS_THOUSAND.test(stripDiacritics(unit)) ? 1_000 : unit === "" ? 1 : 1_000_000;
   // Two decimals, not whole numbers: "AED 1.5" must not become 2.
   return Math.round(base * factor * 100) / 100;
 }
@@ -77,7 +95,10 @@ export function findInventedPrices(reply: string, toolResults: readonly string[]
   return findMoneyAmounts(reply).filter((amount) => !allowed.has(amount.value));
 }
 
-/** The note added to the next call when a draft reply had invented prices. */
+/**
+ * Prompt v1's note for the retry after a draft had invented prices. Each prompt version has its own
+ * (`PromptVersion.priceCorrection`), because the note is an instruction to the model.
+ */
 export function priceCorrectionNote(invented: readonly MoneyAmount[]): string {
   return (
     `Correction: your draft reply mentioned ${invented.map((a) => a.raw).join(", ")}, which no tool returned. ` +

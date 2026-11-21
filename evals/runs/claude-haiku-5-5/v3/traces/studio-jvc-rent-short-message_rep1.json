@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: Short message with an area abbreviation (JVC) and a studio: beds 0, alias understood"
+  },
+  {
+    "role": "user",
+    "content": "Any studios in JVC for rent? Max 50k."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"JVC\"\n  ],\n  \"beds\": 0,\n  \"budgetAed\": 50000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"JVC\",\n  \"beds\": 0,\n  \"maxPriceAed\": 50000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"JVC\"],\"beds\":0,\"budgetAed\":50000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L07\",\"title\":\"Furnished studio with pool access, JVC\",\"area\":\"Jumeirah Village Circle\",\"propertyType\":\"apartment\",\"beds\":0,\"purpose\":\"rent\",\"priceAed\":45000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "Yes, I found one furnished studio with pool access in Jumeirah Village Circle, available to rent now for AED 45,000 a year.\n\nWould you like more details or to book a viewing? Also, when are you hoping to move in?"
+  }
+]

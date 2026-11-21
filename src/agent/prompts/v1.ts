@@ -1,3 +1,4 @@
+import { priceCorrectionNote } from "@/agent/guards";
 import type { PromptContext, PromptVersion } from "@/agent/prompts/types";
 
 /**
@@ -41,4 +42,9 @@ function dynamic({ now, lead }: PromptContext): string {
   ].join("\n");
 }
 
-export const PROMPT_V1: PromptVersion = { version: "v1", stable, dynamic };
+export const PROMPT_V1: PromptVersion = {
+  version: "v1",
+  stable,
+  dynamic,
+  priceCorrection: priceCorrectionNote,
+};

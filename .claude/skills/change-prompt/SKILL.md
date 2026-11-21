@@ -17,8 +17,11 @@ Prompts are code. A prompt change can fix one case and silently break five other
    - a short example of good behaviour,
      over long lists of "don'ts".
 4. **Point the agent** at the new version (one constant, so the old one is still selectable for comparison).
-5. **Run evals** for both versions on the same provider:
-   `npm run evals -- --prompt vN` and `npm run evals -- --prompt vN+1`.
+5. **Run evals** for the new version on the same provider and judge as the old one, in its own folder:
+   `npm run evals -- --provider claude --reps 3 --prompt vN+1 --variant v<next>`, with a `change.md` in that folder
+   (first line: what changed). The old version's rows are already in `baseline` or an earlier `v<N>`; one folder
+   never mixes versions. Then `npm run evals:compare` and `npm run evals:report -- evals/runs/<model>`.
+   Also give the new version its own `priceCorrection` note if the change touches prices.
 6. **Compare** per check (extraction, tool use, no invented prices, handoff, tone). Keep the new version only if
    it fixes the target cases **without** making other checks worse. Otherwise, try again or revert.
 7. **Record** the before/after table in the plan file and the PR description (real numbers only).

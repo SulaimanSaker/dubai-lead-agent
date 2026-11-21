@@ -9,6 +9,7 @@ import { join } from "node:path";
 import type { LlmProvider } from "@/agent/llm";
 import { modelCallCostUsd } from "@/agent/llm/pricing";
 import type { TurnObserver } from "@/agent/observer";
+import { CURRENT_PROMPT, type PromptVersion } from "@/agent/prompts";
 import type { EvalCase } from "./cases";
 import { gradeCase } from "./grade";
 import { JUDGE_CRITERIA, JUDGE_VERSION, type JudgeInput, type JudgeResult } from "./judge";
@@ -21,7 +22,7 @@ const INFRA_OUTCOMES = new Set(["timeout", "provider_error", "internal_error"]);
 export interface RunEvalOptions {
   cases: EvalCase[];
   provider: LlmProvider;
-  /** results.jsonl etc. go here, e.g. evals/runs/claude-haiku-5-5/baseline */
+  /** results.jsonl etc. go here, e.g. evals/runs/claude-haiku-5-5/baseline (see evals/lib/variants.ts) */
   outDir: string;
   reps: number;
   concurrency: number;
@@ -31,6 +32,8 @@ export interface RunEvalOptions {
   observer?: TurnObserver;
   /** Trace tags for every turn (e.g. "eval", the run id). */
   traceTags?: string[];
+  /** The prompt version to run. Default: the app's current prompt. One folder holds one version. */
+  prompt?: PromptVersion;
   /** Check that every reply came from this model (catches silent fallbacks). */
   expectModel?: string;
   log?: (line: string) => void;
@@ -47,6 +50,7 @@ export interface EvalSummary {
 interface Row {
   prompt_id: string;
   rep: number;
+  prompt_version?: string;
   grade: Record<string, number>;
   cost_usd: number | null;
 }
@@ -78,7 +82,17 @@ export async function runEval(options: RunEvalOptions): Promise<EvalSummary> {
   const resultsFile = join(options.outDir, "results.jsonl");
   const errorsFile = join(options.outDir, "errors.jsonl");
 
-  const done = new Set(readJsonl<Row>(resultsFile).map((row) => `${row.prompt_id}#${row.rep}`));
+  const prompt = options.prompt ?? CURRENT_PROMPT;
+  const existing = readJsonl<Row>(resultsFile);
+  // Resume only rows of the same prompt version; a folder never mixes versions (use another --variant).
+  const other = existing.find((row) => (row.prompt_version ?? "unknown") !== prompt.version);
+  if (other) {
+    throw new Error(
+      `${resultsFile} has rows for prompt ${other.prompt_version ?? "unknown"}, not ${prompt.version}. ` +
+        "Use another --variant for another prompt version.",
+    );
+  }
+  const done = new Set(existing.map((row) => `${row.prompt_id}#${row.rep}`));
   const jobs = options.cases.flatMap((evalCase) =>
     Array.from({ length: options.reps }, (_, rep) => ({ evalCase, rep })),
   );
@@ -106,6 +120,7 @@ export async function runEval(options: RunEvalOptions): Promise<EvalSummary> {
     try {
       run = await withTimeout(
         runCase(evalCase, options.provider, {
+          prompt,
           observer: options.observer,
           traceTags: [...(options.traceTags ?? []), evalCase.id],
         }),
@@ -141,9 +156,20 @@ export async function runEval(options: RunEvalOptions): Promise<EvalSummary> {
       );
       return;
     }
+    // Same idea for the prompt: every saved turn must say it used the version we asked for.
+    const wrongPrompt = run.metas.find((meta) => meta.promptVersion !== prompt.version);
+    if (wrongPrompt) {
+      writeError(
+        evalCase,
+        rep,
+        "prompt_mismatch",
+        `asked for prompt ${prompt.version}, a turn used ${String(wrongPrompt.promptVersion)}`,
+      );
+      return;
+    }
 
     const code = gradeCase(evalCase, run);
-    const promptVersion = String(run.metas[0]?.promptVersion ?? "v1");
+    const promptVersion = prompt.version;
     const trace = toTrace(evalCase, run.conversation, promptVersion);
     let judged: JudgeResult | undefined;
     if (options.judge) {
@@ -183,6 +209,7 @@ export async function runEval(options: RunEvalOptions): Promise<EvalSummary> {
       rep,
       prompt: evalCase.messages.join("\n---\n"),
       tags: evalCase.tags,
+      prompt_version: promptVersion,
       status: "ok",
       grade,
       explanation,

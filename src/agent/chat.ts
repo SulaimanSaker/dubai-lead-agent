@@ -6,7 +6,7 @@ import { getLeadView, type LeadView } from "@/agent/leads";
 import { getProvider, type LlmProvider } from "@/agent/llm";
 import { runAgentTurn, type AgentTurnResult, type LoopLimits } from "@/agent/loop";
 import { NOOP_OBSERVER, observeTurn, type TurnObserver } from "@/agent/observer";
-import { CURRENT_PROMPT } from "@/agent/prompts";
+import { CURRENT_PROMPT, type PromptVersion } from "@/agent/prompts";
 import { getTurnObserver } from "@/agent/tracing";
 import type { Db } from "@/db/client";
 import { ensureLead } from "@/tools/lib/leads";
@@ -29,6 +29,8 @@ export interface ChatDeps {
   observer?: TurnObserver;
   /** Extra trace tags (evals tag their runs). */
   traceTags?: string[];
+  /** The prompt version to use. Default: CURRENT_PROMPT (evals compare versions). */
+  prompt?: PromptVersion;
 }
 
 export interface ChatResponse {
@@ -86,6 +88,7 @@ function oneAtATime<T>(leadId: string, task: () => Promise<T>): Promise<T> {
 
 async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise<ChatResponse> {
   const now = deps.now();
+  const prompt = deps.prompt ?? CURRENT_PROMPT;
 
   await ensureLead({ db: deps.db, leadId, now });
   const history = await loadConversation(deps.db, leadId);
@@ -94,7 +97,7 @@ async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise
     userMessage: message,
     provider: deps.provider.name,
     model: deps.provider.model,
-    promptVersion: CURRENT_PROMPT.version,
+    promptVersion: prompt.version,
     ...(deps.traceTags && { tags: deps.traceTags }),
   };
   const { result, traceId } = await observeTurn(
@@ -109,6 +112,7 @@ async function runTurn(leadId: string, message: string, deps: ChatDeps): Promise
         userMessage: message,
         now,
         limits: deps.limits,
+        prompt,
         trace,
       });
       trace.finish({

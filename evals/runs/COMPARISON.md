@@ -3,8 +3,11 @@
 Per-case mean over reps, then mean over cases. Agent cost excludes the judge. Errors = (case, rep) pairs that
 never produced a scorable result (infra or judge failure); they are not counted in the scores.
 
-| Model | Cases × reps | Pass | Code checks | Extraction | Tool use | Booking | Handoff | No invented prices | Turns OK | Language | Style | Judge: answers | Judge: grounded | Judge: professional | Latency / turn | Agent cost / case | Errors |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| claude-haiku-5-5 | 31 × 3.0 | 92% (n=31) | 95% (n=31) | 100% (n=15) | 100% (n=29) | 100% (n=31) | 100% (n=31) | 100% (n=31) | 95% (n=31) | 100% (n=31) | 100% (n=31) | 95% (n=31) | 97% (n=31) | 100% (n=31) | 2.7 s | $0.00052 | 0 |
-| fake-model | 9 × 1.0 | 0% (n=9) | 100% (n=9) | 100% (n=3) | 100% (n=7) | 100% (n=9) | 100% (n=9) | 100% (n=9) | 100% (n=9) | 100% (n=9) | 100% (n=9) | 0% (n=9) | 100% (n=9) | 100% (n=9) | 0.0 s | $0.00000 | 0 |
-| gemma-3-4b | 31 × 1.0 | 0% (n=31) | 23% (n=31) | 27% (n=15) | 41% (n=29) | 81% (n=31) | 61% (n=31) | 100% (n=31) | 39% (n=31) | 100% (n=31) | 84% (n=31) | 6% (n=31) | 55% (n=31) | 74% (n=31) | 20.1 s | $0.00000 | 0 |
+| Model | Variant | Prompt | Cases × reps | Pass | Code checks | Extraction | Tool use | Booking | Handoff | No invented prices | Turns OK | Language | Style | Judge: answers | Judge: grounded | Judge: professional | Latency / turn | Agent cost / case | Errors |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| claude-haiku-5-5 | baseline | v1 | 33 × 3.0 | 89% (n=33) | 90% (n=33) | 100% (n=15) | 100% (n=31) | 100% (n=33) | 100% (n=33) | 97% (n=33) | 93% (n=33) | 100% (n=33) | 100% (n=33) | 93% (n=33) | 99% (n=33) | 99% (n=33) | 2.7 s | $0.00056 | 0 |
+| claude-haiku-5-5 | v1 | v2 | 33 × 3.0 | 97% (n=33) | 98% (n=33) | 100% (n=15) | 99% (n=31) | 100% (n=33) | 99% (n=33) | 100% (n=33) | 100% (n=33) | 99% (n=33) | 99% (n=33) | 100% (n=33) | 99% (n=33) | 97% (n=33) | 2.4 s | $0.00051 | 0 |
+| claude-haiku-5-5 | v2 | v2 | 3 × 3.0 | 78% (n=3) | 78% (n=3) | 100% (n=1) | 100% (n=3) | 100% (n=3) | 100% (n=3) | 100% (n=3) | 100% (n=3) | 78% (n=3) | 100% (n=3) | 89% (n=3) | 100% (n=3) | 78% (n=3) | 2.6 s | $0.00063 | 0 |
+| claude-haiku-5-5 | v3 | v3 | 33 × 3.0 | 96% (n=33) | 100% (n=33) | 100% (n=15) | 100% (n=31) | 100% (n=33) | 100% (n=33) | 100% (n=33) | 100% (n=33) | 100% (n=33) | 99% (n=33) | 100% (n=33) | 96% (n=33) | 99% (n=33) | 2.4 s | $0.00049 | 0 |
+| fake-model | baseline | v1 | 31 × 1.0 | 0% (n=31) | 29% (n=31) | 20% (n=15) | 24% (n=29) | 97% (n=31) | 84% (n=31) | 100% (n=31) | 100% (n=31) | 94% (n=31) | 100% (n=31) | 0% (n=31) | 100% (n=31) | 84% (n=31) | 0.0 s | $0.00000 | 0 |
+| gemma-3-4b | baseline | v1 | 31 × 1.0 | 0% (n=31) | 23% (n=31) | 27% (n=15) | 41% (n=29) | 81% (n=31) | 61% (n=31) | 100% (n=31) | 39% (n=31) | 100% (n=31) | 84% (n=31) | 6% (n=31) | 48% (n=31) | 77% (n=31) | 20.1 s | $0.00000 | 0 |

@@ -40,6 +40,32 @@ describe("findMoneyAmounts", () => {
     expect(findMoneyAmounts("الإيجار ١٢٠٬٠٠٠ درهم").map((a) => a.value)).toEqual([120_000]);
   });
 
+  // Held-out eval 2026-11-21: Arabic "thousand" / "million" words were not read as money.
+  it("reads Arabic thousand and million words, with or without a currency", () => {
+    const values = (text: string) => findMoneyAmounts(text).map((a) => a.value);
+    expect(values("نعم، السعر 70 ألف درهم سنويًا")).toEqual([70_000]);
+    expect(values("وليس 70 ألفًا")).toEqual([70_000]);
+    expect(values("السعر ١١٠ ألف درهم")).toEqual([110_000]);
+    expect(values("حوالي 1.2 مليون درهم")).toEqual([1_200_000]);
+    expect(values("بين 3 ملايين و 4 ملايين")).toEqual([3_000_000, 4_000_000]);
+    expect(values("الشقة في الطابق 70")).toEqual([]);
+  });
+
+  // Second review 2026-11-21: the informal spellings were missed, and longer words were read as amounts.
+  it("reads Arabic spellings without hamza and with tanween, and stops at the end of the word", () => {
+    const values = (text: string) => findMoneyAmounts(text).map((a) => a.value);
+    expect(values("نعم 70 الف درهم")).toEqual([70_000]);
+    expect(values("السعر ١٢٠ الف درهم")).toEqual([120_000]);
+    expect(values("وليس 70 ألفاً")).toEqual([70_000]);
+    expect(values("حوالي 3 آلاف درهم")).toEqual([3_000]);
+    expect(values("حوالي 3 ألاف")).toEqual([3_000]);
+    expect(values("السعر 2 مليون.")).toEqual([2_000_000]);
+    expect(values("السعر 120 ألف، سنويًا")).toEqual([120_000]);
+    for (const text of ["5 ألفاظ", "2 مليونير", "70 ألفية", "5 الفيلا"]) {
+      expect(values(text), text).toEqual([]);
+    }
+  });
+
   it("keeps decimals of small amounts", () => {
     expect(findMoneyAmounts("AED 1.5").map((a) => a.value)).toEqual([1.5]);
   });
@@ -77,6 +103,9 @@ describe("findInventedPrices", () => {
     expect(findInventedPrices("Rent is 99,000 a year.", toolResults)).toHaveLength(1);
     expect(findInventedPrices("الإيجار ٩٩٬٠٠٠ درهم", toolResults)).toHaveLength(1);
     expect(findInventedPrices("الإيجار ١١٥٬٠٠٠ درهم", toolResults)).toEqual([]);
+    // "Yes, it's 70 thousand dirhams" confirms a price only the buyer said; "115 thousand" is the tool's.
+    expect(findInventedPrices("نعم، السعر 70 ألف درهم سنويًا", toolResults)).toHaveLength(1);
+    expect(findInventedPrices("السعر 115 ألف درهم سنويًا", toolResults)).toEqual([]);
   });
 });
 

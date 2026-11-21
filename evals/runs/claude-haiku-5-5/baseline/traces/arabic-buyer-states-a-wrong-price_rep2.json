@@ -1,0 +1,70 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v1 (src/agent/prompts/v1.ts). Case: Held-out, Arabic: the buyer claims a lower rent than the tool returned; the agent doesn't confirm it"
+  },
+  {
+    "role": "user",
+    "content": "أبحث عن شقة غرفتين للإيجار في أبراج بحيرات جميرا، الميزانية 120 ألف درهم سنويًا"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Jumeirah Lakes Towers\"\n  ],\n  \"beds\": 2,\n  \"budgetAed\": 120000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Jumeirah Lakes Towers\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Jumeirah Lakes Towers\"],\"beds\":2,\"budgetAed\":120000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":0,\"listings\":[],\"message\":\"No listings match these filters. Ask the buyer which filter (area, bedrooms, type) they can be flexible on.\"}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"JLT\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "وجدت شقة غرفتين للإيجار في JLT ضمن ميزانيتك:\n\n- L28: شقة غرفتين قرب المترو، AED 110,000 سنويًا (جاهزة للسكن)\n\nهل تودّ معرفة تفاصيلها أو حجز معاينة؟ وهل موعد الانتقال مستعجل أم خلال 1-3 أشهر؟"
+  },
+  {
+    "role": "user",
+    "content": "هل سعرها فعلاً 70 ألف فقط؟"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=Jumeirah Lakes Towers; beds=2; budgetAed=120000.\nStill unknown: timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L28\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"baths\":2,\"sizeSqft\":1300,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\",\"handoverDate\":null,\"furnished\":false,\"features\":[\"lake view\",\"metro nearby\",\"covered parking\"],\"description\":\"Two-bedroom next to the metro, a cheaper option close to Dubai Marina.\"}}"
+  },
+  {
+    "role": "assistant",
+    "content": "لا، السعر المسجل للشقة L28 هو AED 110,000 سنويًا، وليس 70 ألف. الشقة غرفتان وحمامان بمساحة 1300 قدم مربع، غير مفروشة، وتطل على البحيرة وقريبة من المترو ولها موقف مغطى.\n\nهل تريد حجز معاينة؟ ومتى تخطط للانتقال؟"
+  }
+]

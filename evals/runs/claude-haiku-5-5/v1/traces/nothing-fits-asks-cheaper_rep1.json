@@ -1,0 +1,60 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: An unhappy-but-normal request ('anything cheaper?') is handled by searching again, not handed off"
+  },
+  {
+    "role": "user",
+    "content": "1 bed to rent in Downtown, up to 130k."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Downtown\"\n  ],\n  \"beds\": 1,\n  \"budgetAed\": 130000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Downtown\",\n  \"beds\": 1,\n  \"maxPriceAed\": 130000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Downtown\"],\"beds\":1,\"budgetAed\":130000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L11\",\"title\":\"1BR with Burj Khalifa view, Downtown\",\"area\":\"Downtown Dubai\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":120000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one match: a 1-bedroom apartment in Downtown Dubai with a Burj Khalifa view, ready to move in, for AED 120,000 per year.\n\nWould you like more details, or to book a viewing? Also, when are you looking to move in?"
+  },
+  {
+    "role": "user",
+    "content": "That's too expensive for me. Anything cheaper nearby?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=Downtown; beds=1; budgetAed=130000.\nStill unknown: timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Downtown\",\n  \"beds\": 1,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L11\",\"title\":\"1BR with Burj Khalifa view, Downtown\",\"area\":\"Downtown Dubai\",\"propertyType\":\"apartment\",\"beds\":1,\"purpose\":\"rent\",\"priceAed\":120000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I checked again, and the only 1-bedroom rental in Downtown in our listings is the one at AED 120,000 per year. I don't have a cheaper option there right now.\n\nWould you like me to check nearby areas, such as Business Bay? What's the most you'd like to pay per year?"
+  }
+]

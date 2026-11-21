@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StructuredRequest } from "@/agent/llm/structured";
 import { evalCaseSchema } from "./cases";
-import { JUDGE_MODEL, judgeRun, judgeSystem, transcriptForJudge } from "./judge";
+import { JUDGE_MODEL, TOOL_RESULT_LIMIT, judgeRun, judgeSystem, transcriptForJudge } from "./judge";
 import type { TraceTurn } from "./trace";
 
 const evalCase = evalCaseSchema.parse({
@@ -19,7 +19,7 @@ const trace: TraceTurn[] = [
   { role: "context", content: "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4)." },
   { role: "tool_call", name: "search_listings", content: '{\n  "beds": 2\n}' },
   { role: "assistant_note", content: "Let me search, are you renting or buying?" },
-  { role: "tool_result", name: "search_listings", content: "x".repeat(5_000) },
+  { role: "tool_result", name: "search_listings", content: "x".repeat(TOOL_RESULT_LIMIT + 1) },
   { role: "assistant", content: "Found one: L02." },
 ];
 
@@ -78,6 +78,10 @@ describe("judgeSystem", () => {
     expect(system).toContain("- book_viewing:");
   });
 
+  it("says example values in the instructions are not facts", () => {
+    expect(judgeSystem("v1")).toContain("Example values in the instructions");
+  });
+
   it("refuses an unknown prompt version", () => {
     expect(() => judgeSystem("v99")).toThrow(/Unknown prompt version/);
   });
@@ -92,6 +96,16 @@ describe("transcriptForJudge", () => {
     expect(text).toContain("… [cut]");
     expect(text).toContain("ASSISTANT: Found one: L02.");
     expect(text).not.toContain("Case: test");
+  });
+
+  // Judge v2 cut tool results at 1,200 characters; a list of free slots can be ~2,000.
+  it("keeps a long slot list whole", () => {
+    const slots = "slot ".repeat(400) + "Wed 18 Nov 2026, 14:00";
+    const text = transcriptForJudge([
+      { role: "tool_result", name: "get_available_slots", content: slots },
+    ]);
+    expect(text).toContain("Wed 18 Nov 2026, 14:00");
+    expect(text).not.toContain("[cut]");
   });
 
   // Judge v1 graded the text a model writes next to a tool call, which the chat never shows the buyer.

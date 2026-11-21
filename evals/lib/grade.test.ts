@@ -201,6 +201,16 @@ describe("gradeCase", () => {
     expect(scores.pass).toBe(0);
   });
 
+  // Since 2026-11-21 language is part of the headline: an English reply to an Arabic buyer fails the case.
+  it("fails pass on the wrong language alone", () => {
+    const { scores, reasons } = gradeCase(
+      { ...cashBuyer, expect: { ...cashBuyer.expect, language: "ar" } },
+      run(),
+    );
+    expect(scores).toMatchObject({ extraction: 1, tool_use: 1, language: 0, pass: 0 });
+    expect(reasons.pass).toBe("failed: language");
+  });
+
   it("checks handoff in both directions", () => {
     const handoffCase = {
       ...cashBuyer,

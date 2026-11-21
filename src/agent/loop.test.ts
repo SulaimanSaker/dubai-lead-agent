@@ -2,7 +2,9 @@ import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LlmError, type LlmMessage } from "@/agent/llm";
 import { runAgentTurn, type AgentTurnInput } from "@/agent/loop";
+import { CURRENT_PROMPT } from "@/agent/prompts";
 import { PROMPT_V1 } from "@/agent/prompts/v1";
+import { PROMPT_V2 } from "@/agent/prompts/v2";
 import { FakeProvider, textStep, toolStep, type FakeStep } from "@/agent/testing/fake-provider";
 import type { Db } from "@/db/client";
 import { leads } from "@/db/schema";
@@ -54,7 +56,7 @@ describe("runAgentTurn: normal turns", () => {
       reply: "Hi! Are you looking to rent or buy?",
       outcome: "replied",
       steps: 1,
-      promptVersion: "v1",
+      promptVersion: CURRENT_PROMPT.version,
       provider: "local",
       model: "fake-model",
       usage: {
@@ -67,7 +69,7 @@ describe("runAgentTurn: normal turns", () => {
     expect(result.newMessages.map((m) => m.role)).toEqual(["user", "context", "assistant"]);
 
     const request = provider.requests[0];
-    expect(request?.system).toBe(PROMPT_V1.stable);
+    expect(request?.system).toBe(CURRENT_PROMPT.stable);
     // Time and lead state arrive as a context message right after the buyer's message.
     const context = request?.messages[1];
     expect(context).toMatchObject({ role: "context" });
@@ -339,6 +341,34 @@ describe("runAgentTurn: price guard", () => {
     // The bad draft itself is never saved: no assistant message has the made-up price.
     const assistantText = result.newMessages.filter((m) => m.role === "assistant");
     expect(JSON.stringify(assistantText)).not.toContain("99,000");
+  });
+
+  // The baseline must stay reproducible: under prompt v1 the retry note is exactly v1's.
+  it("sends v1's correction note when running prompt v1", async () => {
+    const { provider, run } = turn(
+      [textStep("We have a 2 bed in Marina for AED 99,000."), textStep("Let me check that.")],
+      { prompt: PROMPT_V1 },
+    );
+    const result = await run();
+    expect(result).toMatchObject({ outcome: "replied", promptVersion: "v1" });
+    expect(provider.requests[1]?.system).toBe(PROMPT_V1.stable);
+    expect(provider.requests[1]?.messages.at(-1)).toMatchObject({
+      role: "context",
+      text: PROMPT_V1.priceCorrection([{ raw: "AED 99,000", value: 99_000 }]),
+    });
+  });
+
+  it("uses the prompt version's own correction note", async () => {
+    const { provider, run } = turn(
+      [textStep("Is it really 80k? Let me check."), textStep("Let me check that price for you.")],
+      { prompt: PROMPT_V2, userMessage: "Is the Marina one really only 80k?" },
+    );
+    const result = await run();
+    expect(result).toMatchObject({ outcome: "replied", promptVersion: "v2" });
+    expect(provider.requests[1]?.messages.at(-1)).toMatchObject({
+      role: "context",
+      text: PROMPT_V2.priceCorrection([{ raw: "80k", value: 80_000 }]),
+    });
   });
 
   it("replaces the reply if the retry still has a made-up price", async () => {

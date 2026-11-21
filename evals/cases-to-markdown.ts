@@ -43,7 +43,7 @@ const out: string[] = [
   "| - | ---- | -------- | ---- | ------ | ------ | ------- |",
   ...cases.map(
     (c, i) =>
-      `| ${i + 1} | [${c.id}](#${c.id}) | ${c.tags[0]} | ${c.tags[1]} | ${c.source.startsWith("real") ? "real" : "synthetic"} | ${c.expect.viewingBooked ? "yes" : "no"} | ${c.expect.handoff ? "yes" : "no"} |`,
+      `| ${i + 1} | [${c.id}](#${c.id}) | ${c.tags[0]} | ${c.tags[1]} | ${c.source.startsWith("real") ? "real" : c.source.startsWith("held-out") ? "held-out" : "synthetic"} | ${c.expect.viewingBooked ? "yes" : "no"} | ${c.expect.handoff ? "yes" : "no"} |`,
   ),
   "",
 ];

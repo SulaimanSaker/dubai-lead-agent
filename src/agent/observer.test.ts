@@ -3,6 +3,7 @@ import { handleBuyerMessage, type ChatDeps } from "@/agent/chat";
 import { loadConversation, loadTurnMeta } from "@/agent/conversation";
 import { LlmError } from "@/agent/llm";
 import { observeTurn, type TurnObserver } from "@/agent/observer";
+import { CURRENT_PROMPT } from "@/agent/prompts";
 import { FakeProvider, textStep, toolStep, type FakeStep } from "@/agent/testing/fake-provider";
 import { RecordingObserver } from "@/agent/testing/recording-observer";
 import type { Db } from "@/db/client";
@@ -57,7 +58,12 @@ describe("what the agent reports to the observer", () => {
     ]);
     expect(observer.events[0]).toMatchObject({
       kind: "turn",
-      info: { leadId: LEAD_ID, provider: "local", model: "fake-model", promptVersion: "v1" },
+      info: {
+        leadId: LEAD_ID,
+        provider: "local",
+        model: "fake-model",
+        promptVersion: CURRENT_PROMPT.version,
+      },
     });
     // The second call sees the buyer message, the context, the tool request and 2 results.
     expect(observer.events[7]).toEqual({ kind: "model:start", step: 2, messages: 5 });

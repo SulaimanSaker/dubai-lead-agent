@@ -1,0 +1,60 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: The buyer's chosen time is already booked by someone else: no double booking, other times offered"
+  },
+  {
+    "role": "user",
+    "content": "2 bed to rent in Dubai Marina up to 120k please."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Dubai Marina\"\n  ],\n  \"beds\": 2,\n  \"budgetAed\": 120000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Marina\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Dubai Marina\"],\"beds\":2,\"budgetAed\":120000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L02\",\"title\":\"Spacious 2BR in Al Sahab Tower\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":115000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one match: a spacious 2-bedroom apartment in Al Sahab Tower, Dubai Marina, ready to move in, for AED 115,000 per year.\n\nWould you like to view it? If so, when would you like to move in, and do you plan to pay by cash or mortgage?"
+  },
+  {
+    "role": "user",
+    "content": "Please book me a viewing this Saturday at 11am."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=Dubai Marina; beds=2; budgetAed=120000.\nStill unknown: timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "get_available_slots",
+    "content": "{\n  \"fromDate\": \"2026-11-21\",\n  \"days\": 1\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_available_slots",
+    "content": "{\"ok\":true,\"timezone\":\"Asia/Dubai (UTC+4)\",\"checked\":{\"from\":\"2026-11-21\",\"to\":\"2026-11-21\"},\"slots\":[{\"startsAt\":\"2026-11-21T10:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 10:00\"},{\"startsAt\":\"2026-11-21T12:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 12:00\"},{\"startsAt\":\"2026-11-21T13:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 13:00\"},{\"startsAt\":\"2026-11-21T14:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 14:00\"},{\"startsAt\":\"2026-11-21T15:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 15:00\"},{\"startsAt\":\"2026-11-21T16:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 16:00\"},{\"startsAt\":\"2026-11-21T17:00:00+04:00\",\"label\":\"Sat 21 Nov 2026, 17:00\"}],\"truncated\":false,\"message\":\"7 free slot(s). Offer the buyer 2–3 of them.\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "The 11am slot isn't free this Saturday. Here are the options:\n\n- Sat 21 Nov 2026, 10:00\n- Sat 21 Nov 2026, 12:00\n- Sat 21 Nov 2026, 13:00\n\nWhich one suits you?"
+  }
+]

@@ -1,10 +1,5 @@
 import { eq } from "drizzle-orm";
-import {
-  findInventedPrices,
-  priceCorrectionNote,
-  safeReply,
-  type SafeReplyKind,
-} from "@/agent/guards";
+import { findInventedPrices, safeReply, type SafeReplyKind } from "@/agent/guards";
 import {
   LlmError,
   toAssistantMessage,
@@ -247,7 +242,7 @@ export async function runAgentTurn(input: AgentTurnInput): Promise<AgentTurnResu
           // Drop the draft (it was never sent back, so dropping it edits nothing) and ask once more,
           // with the correction added as a context message (saved, like any message).
           retriedPrices = true;
-          const note: LlmMessage = { role: "context", text: priceCorrectionNote(invented) };
+          const note: LlmMessage = { role: "context", text: prompt.priceCorrection(invented) };
           conversation.push(note);
           newMessages.push(note);
           continue;

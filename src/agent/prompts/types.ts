@@ -1,3 +1,5 @@
+import type { MoneyAmount } from "@/agent/guards";
+
 /** What the dynamic part of a prompt may use. Built by the loop once per buyer message. */
 export interface PromptContext {
   /** "Mon 16 Nov 2026, 14:05": Dubai wall-clock time, with the year. */
@@ -19,4 +21,9 @@ export interface PromptVersion {
    * never inside the system prompt (ADR 0006).
    */
   dynamic(context: PromptContext): string;
+  /**
+   * The note added (as a `context` message) when the price guard rejects a draft, before the one retry.
+   * Part of the prompt version, because it is an instruction to the model.
+   */
+  priceCorrection(invented: readonly MoneyAmount[]): string;
 }

@@ -7,6 +7,7 @@ import { InMemorySpanExporter, type ReadableSpan } from "@opentelemetry/sdk-trac
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { handleBuyerMessage } from "@/agent/chat";
 import { loadTurnMeta } from "@/agent/conversation";
+import { CURRENT_PROMPT } from "@/agent/prompts";
 import { FakeProvider, textStep, toolStep } from "@/agent/testing/fake-provider";
 import { readTracingConfig } from "@/agent/tracing/config";
 import { langfuseObserver } from "@/agent/tracing/langfuse";
@@ -69,7 +70,11 @@ describe("Langfuse trace of one buyer message", () => {
     expect(attr(root, "langfuse.observation.type")).toBe("agent");
     expect(attr(root, "session.id")).toBe(LEAD_ID);
     expect(attr(root, "langfuse.trace.name")).toBe("agent-turn");
-    expect(attr(root, "langfuse.trace.tags")).toEqual(["local", "fake-model", "prompt-v1"]);
+    expect(attr(root, "langfuse.trace.tags")).toEqual([
+      "local",
+      "fake-model",
+      `prompt-${CURRENT_PROMPT.version}`,
+    ]);
     expect(json(root, "langfuse.observation.input")).toBe("Hi");
     expect(json(root, "langfuse.observation.output")).toBe("Hello!");
     // Every span belongs to the same trace, and all of them carry the session.

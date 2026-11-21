@@ -1,0 +1,18 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: A greeting is answered without tools and without saving anything"
+  },
+  {
+    "role": "user",
+    "content": "Hi! Who am I talking to?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi! I'm the WhatsApp assistant for our Dubai real estate agency. I can help you find a home to rent or buy, arrange viewings, and connect you with a human agent if needed.\n\nAre you looking to rent or to buy?"
+  }
+]

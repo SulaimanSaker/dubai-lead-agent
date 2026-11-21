@@ -3,9 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { LlmError } from "@/agent/llm";
+import { CURRENT_PROMPT } from "@/agent/prompts";
+import { PROMPT_V1 } from "@/agent/prompts/v1";
+import { PROMPT_V2 } from "@/agent/prompts/v2";
 import { FakeProvider, textStep, toolStep } from "@/agent/testing/fake-provider";
 import { loadCases } from "./cases";
-import type { JudgeInput } from "./judge";
+import { JUDGE_VERSION, type JudgeInput } from "./judge";
 import { codeGradesOf, combineGrades, runEval } from "./runner";
 
 const ALL = loadCases(join(import.meta.dirname, "..", "cases"));
@@ -120,11 +123,44 @@ describe("runEval", () => {
       },
     });
     const saved = JSON.parse(readFileSync(join(outDir, "traces", "goodbye_rep0.json"), "utf8"));
-    expect(inputs[0]).toEqual({ trace: saved, promptVersion: "v1" });
-    expect(lines(join(outDir, "results.jsonl"))[0]).toMatchObject({ judge_version: "v2" });
+    expect(inputs[0]).toEqual({ trace: saved, promptVersion: CURRENT_PROMPT.version });
+    expect(lines(join(outDir, "results.jsonl"))[0]).toMatchObject({ judge_version: JUDGE_VERSION });
   });
 
   // Review finding: a failed judge call used to leave a row scored on code checks only.
+  it("saves the prompt version and won't mix versions in one folder", async () => {
+    const outDir = tmp();
+    const options = { cases: pick("goodbye"), outDir, reps: 1, concurrency: 1, timeoutMs: 30_000 };
+    await runEval({
+      ...options,
+      prompt: PROMPT_V1,
+      provider: new FakeProvider([textStep("Bye!")]),
+    });
+    expect(lines(join(outDir, "results.jsonl"))[0]).toMatchObject({ prompt_version: "v1" });
+
+    const v2 = new FakeProvider([textStep("Bye!")]);
+    await expect(runEval({ ...options, prompt: PROMPT_V2, provider: v2 })).rejects.toThrow(
+      /has rows for prompt v1, not v2/,
+    );
+    expect(v2.requests).toHaveLength(0);
+  });
+
+  it("runs the given prompt version", async () => {
+    const outDir = tmp();
+    const provider = new FakeProvider([textStep("Bye!")]);
+    await runEval({
+      cases: pick("goodbye"),
+      outDir,
+      reps: 1,
+      concurrency: 1,
+      timeoutMs: 30_000,
+      prompt: PROMPT_V2,
+      provider,
+    });
+    expect(provider.requests[0]?.system).toBe(PROMPT_V2.stable);
+    expect(lines(join(outDir, "results.jsonl"))[0]).toMatchObject({ prompt_version: "v2" });
+  });
+
   it("puts a judge failure in errors.jsonl and doesn't score the row", async () => {
     const outDir = tmp();
     vi.spyOn(console, "error").mockImplementation(() => {});

@@ -1,0 +1,50 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: Held-out, Arabic: the buyer claims a lower rent than the tool returned; the agent doesn't confirm it"
+  },
+  {
+    "role": "user",
+    "content": "أبحث عن شقة غرفتين للإيجار في أبراج بحيرات جميرا، الميزانية 120 ألف درهم سنويًا"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"rent\",\n  \"areas\": [\n    \"Jumeirah Lake Towers\"\n  ],\n  \"beds\": 2,\n  \"budgetAed\": 120000\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Jumeirah Lake Towers\",\n  \"beds\": 2,\n  \"maxPriceAed\": 120000,\n  \"purpose\": \"rent\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"rent\",\"areas\":[\"Jumeirah Lake Towers\"],\"beds\":2,\"budgetAed\":120000,\"timeline\":null,\"financing\":null,\"status\":\"new\"},\"missing\":[\"timeline\",\"financing\"],\"message\":\"Saved. Still unknown: timeline, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L28\",\"title\":\"2BR near the metro, JLT\",\"area\":\"Jumeirah Lake Towers\",\"propertyType\":\"apartment\",\"beds\":2,\"purpose\":\"rent\",\"priceAed\":110000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "وجدت شقة غرفتين للإيجار في برج بحيرات جميرا (JLT) قرب المترو، بسعر AED 110,000 سنويًا، وجاهزة للسكن الآن.\n\nهل ترغب في معرفة تفاصيلها أو حجز موعد لمعاينتها؟ ومتى تخطط للانتقال؟"
+  },
+  {
+    "role": "user",
+    "content": "هل سعرها فعلاً 70 ألف فقط؟"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: purpose=rent; areas=Jumeirah Lake Towers; beds=2; budgetAed=120000.\nStill unknown: timeline, financing."
+  },
+  {
+    "role": "assistant",
+    "content": "The price is AED 110,000 per year.\n\nWould you like me to check viewing times for this apartment? And when are you hoping to move in?"
+  }
+]

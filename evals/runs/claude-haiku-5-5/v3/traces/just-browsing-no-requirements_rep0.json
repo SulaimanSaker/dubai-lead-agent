@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v3 (src/agent/prompts/v3.ts). Case: A browsing buyer gives no requirements: no beds, budget, area or financing invented"
+  },
+  {
+    "role": "user",
+    "content": "Just browsing for now. Which areas do you cover?"
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"timeline\": \"browsing\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "get_listing",
+    "content": "{\n  \"listingId\": \"L01\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":null,\"areas\":null,\"beds\":null,\"budgetAed\":null,\"timeline\":\"browsing\",\"financing\":null,\"status\":\"new\"},\"missing\":[\"purpose\",\"areas\",\"beds\",\"budgetAed\",\"financing\"],\"message\":\"Saved. Still unknown: purpose, areas, beds, budgetAed, financing. Ask about these naturally, not all at once.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "get_listing",
+    "content": "{\"ok\":true,\"listing\":{\"id\":\"L01\",\"title\":\"Furnished 1BR with marina view, Marina Heights\",\"area\":\"Dubai Marina\",\"propertyType\":\"apartment\",\"beds\":1,\"baths\":1,\"sizeSqft\":780,\"purpose\":\"rent\",\"priceAed\":95000,\"status\":\"ready\",\"handoverDate\":null,\"furnished\":true,\"features\":[\"marina view\",\"gym\",\"pool\",\"metro nearby\"],\"description\":\"Bright one-bedroom on a high floor, fully furnished, five minutes' walk to the tram and metro.\"}}"
+  },
+  {
+    "role": "assistant",
+    "content": "Happy to help you browse. I can search our listings by area, so tell me which neighbourhoods interest you, such as Dubai Marina, JVC or Downtown. Are you looking to rent or buy?"
+  }
+]

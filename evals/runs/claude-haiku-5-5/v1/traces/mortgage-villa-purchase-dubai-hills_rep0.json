@@ -1,0 +1,38 @@
+[
+  {
+    "role": "system",
+    "content": "Prompt v2 (src/agent/prompts/v2.ts). Case: Buyer wants to buy with a mortgage and gives a timeline: all six fields saved"
+  },
+  {
+    "role": "user",
+    "content": "We want to buy a 4 bedroom villa in Dubai Hills, budget up to 7 million, with a mortgage. Hoping to move in 3 to 6 months."
+  },
+  {
+    "role": "context",
+    "content": "Current time in Dubai: Mon 16 Nov 2026, 14:05 (UTC+4).\nLead status: new.\nSaved so far: nothing yet.\nStill unknown: purpose, areas, beds, budgetAed, timeline, financing."
+  },
+  {
+    "role": "tool_call",
+    "name": "update_lead",
+    "content": "{\n  \"purpose\": \"sale\",\n  \"areas\": [\n    \"Dubai Hills\"\n  ],\n  \"beds\": 4,\n  \"budgetAed\": 7000000,\n  \"financing\": \"mortgage\",\n  \"timeline\": \"3_6_months\"\n}"
+  },
+  {
+    "role": "tool_call",
+    "name": "search_listings",
+    "content": "{\n  \"area\": \"Dubai Hills\",\n  \"beds\": 4,\n  \"maxPriceAed\": 7000000,\n  \"purpose\": \"sale\",\n  \"propertyType\": \"villa\"\n}"
+  },
+  {
+    "role": "tool_result",
+    "name": "update_lead",
+    "content": "{\"ok\":true,\"lead\":{\"purpose\":\"sale\",\"areas\":[\"Dubai Hills\"],\"beds\":4,\"budgetAed\":7000000,\"timeline\":\"3_6_months\",\"financing\":\"mortgage\",\"status\":\"qualified\"},\"missing\":[],\"message\":\"Lead is fully qualified.\"}"
+  },
+  {
+    "role": "tool_result",
+    "name": "search_listings",
+    "content": "{\"ok\":true,\"total\":1,\"listings\":[{\"id\":\"L23\",\"title\":\"4BR villa on the golf course, Dubai Hills\",\"area\":\"Dubai Hills Estate\",\"propertyType\":\"villa\",\"beds\":4,\"purpose\":\"sale\",\"priceAed\":6900000,\"status\":\"ready\"}],\"message\":\"1 match(es).\"}"
+  },
+  {
+    "role": "assistant",
+    "content": "I found one match: a 4-bedroom villa on the golf course in Dubai Hills Estate, priced at AED 6,900,000, ready to move in. Would you like more details or a viewing? I can also check other options if you'd like to widen the search."
+  }
+]

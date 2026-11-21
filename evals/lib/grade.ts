@@ -10,7 +10,10 @@ import type { CaseRun } from "./run-case";
 export type Scores = Record<string, number>;
 export type Reasons = Record<string, string>;
 
-/** Checks that make up the headline `pass` (correctness). Language and style are reported separately. */
+/**
+ * Checks that make up the headline `pass`. Language counts since 2026-11-21: an English reply to an Arabic buyer
+ * is a real failure in Dubai (a held-out case showed one). Style is reported separately.
+ */
 export const PASS_CHECKS = [
   "extraction",
   "tool_use",
@@ -18,6 +21,7 @@ export const PASS_CHECKS = [
   "handoff",
   "no_invented_prices",
   "turns_ok",
+  "language",
 ] as const;
 
 const AREA_ALIASES: Record<string, string> = {
